@@ -21,9 +21,7 @@
     "joi": "^17.10.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.0.0",
-    "mongoose": "^7.5.0",
     "mongoose-delete": "^1.0.1",
-    "mongoose-unique-validator": "^4.0.0",
     "slug": "^8.2.3"
   },
   "devDependencies": {

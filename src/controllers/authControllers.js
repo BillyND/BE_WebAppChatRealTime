@@ -29,7 +29,7 @@ const authController = {
       if (isExistUser) {
         return res.status(404).json({
           EC: 1,
-          message: "Tài khoản đã tồn tại!",
+          message: "Account already exists!",
         });
       }
 
@@ -39,13 +39,13 @@ const authController = {
       return res.status(200).json({
         EC: 0,
         data: user,
-        message: "Đăng ký thành công!",
+        message: "Register success!",
       });
     } catch (error) {
       res.status(500).json({
         EC: -2,
         data: error,
-        message: "Máy chủ lỗi!",
+        message: "Server error!",
       });
     }
   },
