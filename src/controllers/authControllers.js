@@ -1,31 +1,24 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
 const keyAccessToken = process.env.JWT_ACCESS_KEY;
 const keyRefreshToken = process.env.JWT_REFRESH_KEY;
 const accessTokenExpire = process.env.JWT_ACCESS_EXPIRE_IN;
 const refreshTokenExpire = process.env.JWT_REFRESH_EXPIRE_IN;
+
 require("dotenv").config();
 
 let refreshTokens = [];
+
 const authController = {
-  // Register
   registerUser: async (req, res) => {
     try {
-      // bcrypt
-      const salt = await bcrypt.genSalt(10);
-      const hashed = await bcrypt.hash(req?.body?.password, salt);
+      const { email, password, username } = req.body;
+      const hashedPassword = await hashPassword(password);
 
-      // Create new user
-      const newUser = {
-        email: req?.body?.email,
-        password: hashed,
-        username: req?.body?.username || "",
-      };
+      const isExistUser = await User.findOne({ email });
 
-      const isExistUser = await User.findOne({ email: req?.body?.email });
-
-      // Check exist email
       if (isExistUser) {
         return res.status(404).json({
           EC: 1,
@@ -33,13 +26,18 @@ const authController = {
         });
       }
 
-      // Save to DB
+      const newUser = {
+        email,
+        password: hashedPassword,
+        username: username || "",
+      };
+
       const user = await User.create(newUser);
 
       return res.status(200).json({
         EC: 0,
         data: user,
-        message: "Register success!",
+        message: "Registration successful!",
       });
     } catch (error) {
       res.status(500).json({
@@ -50,35 +48,30 @@ const authController = {
     }
   },
 
-  //Generate access token
   generateAccessToken: (user) => {
     return jwt.sign({ id: user.id, isAdmin: user.isAdmin }, keyAccessToken, {
       expiresIn: accessTokenExpire,
     });
   },
 
-  // Generate refresh token
   generateRefreshToken: (user) => {
     return jwt.sign({ id: user.id, isAdmin: user.isAdmin }, keyRefreshToken, {
       expiresIn: refreshTokenExpire,
     });
   },
 
-  // Login
   loginUser: async (req, res) => {
     try {
       const user = await User.findOne({ email: req.body.email });
 
-      // Check email
       if (!user) {
         return res.status(404).json({
           EC: -1,
           data: user,
-          message: "Tài khoản không tồn tại!",
+          message: "Account does not exist!",
         });
       }
 
-      // Check password
       const validatePassword = await bcrypt.compare(
         req.body.password,
         user.password
@@ -88,7 +81,7 @@ const authController = {
         return res.status(404).json({
           EC: -1,
           data: user,
-          message: "Mật khẩu sai!",
+          message: "Incorrect password!",
         });
       }
 
@@ -98,25 +91,23 @@ const authController = {
 
         refreshTokens.push(refreshToken);
 
-        //Remove password when login
         const { password, ...others } = user._doc;
-
         const infoUser = { ...others };
         res.status(200).json({
           EC: 0,
           data: { infoUser, accessToken, refreshToken },
+          message: "Login successful!",
         });
       }
     } catch (error) {
       res.status(500).json({
         EC: -2,
-        message: "Máy chủ lỗi!",
+        message: "Server error!",
         data: error,
       });
     }
   },
 
-  // Test refresh token
   requestRefreshToken: async (req, res) => {
     if (req.body.refreshLocal === null) {
       return res.status(200).json({ EC: 1, data: "Refresh token is expired" });
@@ -130,7 +121,6 @@ const authController = {
       }
       refreshTokens = refreshTokens.filter((token) => token != refreshToken);
 
-      // Create new access token/refresh Token
       const newAccessToken = authController.generateAccessToken(user);
       const newRefreshToken = authController.generateRefreshToken(user);
 
@@ -146,7 +136,6 @@ const authController = {
     });
   },
 
-  // Logout
   logoutUser: async (req, res) => {
     return res.status(200).json({
       EC: 0,
@@ -154,7 +143,6 @@ const authController = {
     });
   },
 
-  // Fetch account
   fetchAccount: async (req, res) => {
     try {
       const userFullInfo = await User.findById(req.user.id);
@@ -172,5 +160,12 @@ const authController = {
     }
   },
 };
+
+async function hashPassword(password) {
+  const saltRounds = 10;
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashed = await bcrypt.hash(password, salt);
+  return hashed;
+}
 
 module.exports = authController;

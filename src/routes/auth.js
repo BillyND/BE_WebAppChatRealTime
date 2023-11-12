@@ -2,26 +2,26 @@ const authRouter = require("express").Router();
 const authController = require("../controllers/authControllers");
 const middlewareControllers = require("../controllers/middlewareControllers");
 
-// Register
+// Route to check token validity
 authRouter.post("/check", middlewareControllers.verifyToken);
 
-// Register
+// Route to register a new user
 authRouter.post("/register", authController.registerUser);
 
-// Login
+// Route to log in a user
 authRouter.post("/login", authController.loginUser);
 
-// Refresh token
+// Route to refresh tokens
 authRouter.post("/refresh", authController.requestRefreshToken);
 
-// Logout
+// Route to log out a user
 authRouter.post(
   "/logout",
   middlewareControllers.verifyToken,
   authController.logoutUser
 );
 
-// Login
+// Route to retrieve user account information
 authRouter.get(
   "/account",
   middlewareControllers.verifyToken,
