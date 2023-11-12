@@ -1,1 +1,1 @@
-ÿþ# BE_WebAppChatRealTime
+ÿþ
