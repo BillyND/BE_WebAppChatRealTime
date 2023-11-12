@@ -1,17 +1,13 @@
-// Load environment variables
 require("dotenv").config();
-
-// Import necessary modules
 const cors = require("cors");
 const express = require("express");
 const connection = require("./src/config/database");
 const authRouter = require("./src/routes/auth");
 const userRouter = require("./src/routes/user");
 const cookieParser = require("cookie-parser");
-
 const app = express();
 
-// Set environment variables
+//env
 const port = process.env.PORT;
 const hostname = process.env.HOST_NAME;
 
@@ -21,34 +17,32 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Default route to check if the server is running
 app.get("/", (req, res) => {
   res.send({
     EC: 0,
-    message: "<=== Web chat API is running ===>",
+    message: "<=== Web chat api is running ===>",
   });
 });
 
-// Route for triggering an action
 app.get("/v1/api/trigger", (req, res) => {
   res.send({
     EC: 0,
-    message: "<=== Trigger API successfully triggered! ===>",
+    message: "<=== Trigger api successfully! ===>",
   });
 });
 
-// Routes setup
+// Routes
 app.use("/v1/api/auth", authRouter);
 app.use("/v1/api/user", userRouter);
 
-// Connect to the database and start the server
+// Connect to DB
 (async () => {
   try {
     await connection();
     app.listen(port, hostname, () => {
-      console.log(`>>> Web chat is running on port ${port}`);
+      console.log(`>>> Web chat is running ${port}`);
     });
   } catch (error) {
-    console.log(">>> Error connecting to the database", error);
+    console.log(">>> Error connection", error);
   }
 })();
