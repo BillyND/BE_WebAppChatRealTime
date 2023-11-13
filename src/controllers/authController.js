@@ -136,28 +136,11 @@ const authController = {
     });
   },
 
-  logoutUser: async (req, res) => {
+  logOut: async (req, res) => {
     return res.status(200).json({
       EC: 0,
       data: { EC: 0, data: "Logout successfully" },
     });
-  },
-
-  fetchAccount: async (req, res) => {
-    try {
-      const userFullInfo = await User.findById(req.user.id);
-      const { password, ...others } = userFullInfo._doc;
-      const user = { ...others };
-      res.status(200).json({
-        EC: 0,
-        data: { user },
-      });
-    } catch (error) {
-      res.status(500).json({
-        EC: -2,
-        data: error,
-      });
-    }
   },
 };
 

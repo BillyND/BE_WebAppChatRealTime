@@ -5,7 +5,11 @@ require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
 const connection = require("./src/config/database");
-const authRouter = require("./src/routes/auth");
+const authRoute = require("./src/routes/auth");
+const postRoute = require("./src/routes/post");
+const userRoute = require("./src/routes/user");
+const messageRoute = require("./src/routes/message");
+const conversationRoute = require("./src/routes/conversation");
 const cookieParser = require("cookie-parser");
 
 const app = express();
@@ -37,7 +41,11 @@ app.get("/v1/api/trigger", (req, res) => {
 });
 
 // Routes setup
-app.use("/v1/api/auth", authRouter);
+app.use("/v1/api/auth", authRoute);
+app.use("/v1/api/post", postRoute);
+app.use("/v1/api/users", userRoute);
+app.use("/v1/api/conversation", conversationRoute);
+app.use("/v1/api/message", messageRoute);
 
 // Connect to the database and start the server
 (async () => {
