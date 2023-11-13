@@ -1,31 +1,61 @@
 const mongoose = require("mongoose");
-const { defaultAvatarUser } = require("../utils/constant");
+const { isEmail } = require("validator");
+var uniqueValidator = require("mongoose-unique-validator");
+
 const userSchema = new mongoose.Schema(
   {
+    username: {
+      type: String,
+    },
+    displayName: {
+      type: String,
+      default: "New User",
+    },
+    about: {
+      type: String,
+      default: "I'm a new user",
+    },
+    age: {
+      type: Number,
+      minlength: 14,
+      default: 99,
+    },
     email: {
       type: String,
-      required: true,
+      required: [true, "Required"],
+      unique: true,
     },
-    password: String,
-    username: String,
-    avatar: {
+    password: {
       type: String,
-      default: defaultAvatarUser,
+      required: [true, "Required"],
     },
-    age: String,
-    gender: String,
     isAdmin: {
       type: Boolean,
       default: false,
     },
-    posts: Array,
-    followers: Array,
-    following: Array,
-    likedPosts: Array,
-    friends: Array,
-    profilePicture: String,
+    profilePicture: {
+      type: String,
+      default:
+        "https://preview.redd.it/rrz3hmsxcll71.png?width=640&crop=smart&auto=webp&s=87cc5ed38d8f088ef9fffef7a4c5756b64309d6a",
+    },
+    followers: {
+      type: Array,
+      default: [],
+    },
+    followings: {
+      type: Array,
+      default: [],
+    },
+    favorites: {
+      type: Array,
+      default: [],
+    },
   },
   { timestamps: true }
 );
-const User = mongoose.model("ser", userSchema);
-module.exports = User;
+
+userSchema.plugin(uniqueValidator, {
+  message: "Error, expected {PATH} to be unique",
+});
+
+module.exports = mongoose.model("User", userSchema);

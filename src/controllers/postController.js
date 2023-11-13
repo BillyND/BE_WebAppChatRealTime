@@ -17,7 +17,6 @@ const postController = {
           cloudinaryId: result.public_id,
           username: users.username,
           avaUrl: users.profilePicture,
-          theme: users.theme,
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
@@ -27,7 +26,6 @@ const postController = {
           ...req.body,
           username: users.username,
           avaUrl: users.profilePicture,
-          theme: users.theme,
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
@@ -122,27 +120,15 @@ const postController = {
       ) {
         await post.updateOne({ $push: { upvotes: req.body.userId } });
         await post.updateOne({ $pull: { downvotes: req.body.userId } });
-        await User.findOneAndUpdate(
-          { _id: post.userId },
-          { $inc: { karmas: 10 } }
-        );
         return res.status(200).json("Post is upvoted!");
       } else if (
         !post.upvotes.includes(req.body.userId) &&
         !post.downvotes.includes(req.body.userId)
       ) {
         await post.updateOne({ $push: { upvotes: req.body.userId } });
-        await User.findOneAndUpdate(
-          { _id: post.userId },
-          { $inc: { karmas: 10 } }
-        );
         return res.status(200).json("Post is upvoted!");
       } else if (post.upvotes.includes(req.body.userId)) {
         await post.updateOne({ $pull: { upvotes: req.body.userId } });
-        await User.findOneAndUpdate(
-          { _id: post.userId },
-          { $inc: { karmas: -10 } }
-        );
         return res.status(200).json("Post is no longer upvoted!");
       }
     } catch (err) {
@@ -160,28 +146,16 @@ const postController = {
       ) {
         await post.updateOne({ $push: { downvotes: req.body.userId } });
         await post.updateOne({ $pull: { upvotes: req.body.userId } });
-        //POST OWNER LOSES KARMAS FROM THE DOWNVOTES
-        await User.findOneAndUpdate(
-          { _id: post.userId },
-          { $inc: { karmas: -10 } }
-        );
         return res.status(200).json("Post is downvoted!");
       } else if (
         !post.downvotes.includes(req.body.userId) &&
         !post.upvotes.includes(req.body.userId)
       ) {
         await post.updateOne({ $push: { downvotes: req.body.userId } });
-        await User.findOneAndUpdate(
-          { _id: post.userId },
-          { $inc: { karmas: -10 } }
-        );
+
         return res.status(200).json("Post is downvoted!");
       } else if (post.downvotes.includes(req.body.userId)) {
         await post.updateOne({ $pull: { downvotes: req.body.userId } });
-        await User.findOneAndUpdate(
-          { _id: post.userId },
-          { $inc: { karmas: 10 } }
-        );
         return res.status(200).json("Post is no longer downvoted!");
       }
     } catch (err) {

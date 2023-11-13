@@ -49,7 +49,7 @@ const userController = {
 
       const accessToken = await authController.generateAccessToken(updatedUser);
 
-      if (req.body.profilePicture || req.body.theme) {
+      if (req.body.profilePicture) {
         try {
           await Promise.all([
             Post.updateMany(
@@ -57,7 +57,6 @@ const userController = {
               {
                 $set: {
                   avaUrl: req.body.profilePicture,
-                  theme: req.body.theme,
                 },
               }
             ),
@@ -66,7 +65,6 @@ const userController = {
               {
                 $set: {
                   avaUrl: req.body.profilePicture,
-                  theme: req.body.theme,
                 },
               }
             ),
@@ -134,7 +132,7 @@ const userController = {
         username: { $regex: username, $options: "i" },
       })
         .limit(2)
-        .select("username profilePicture theme");
+        .select("username profilePicture");
       res.status(200).json(users);
     } catch (err) {
       res.status(500).json(err);
