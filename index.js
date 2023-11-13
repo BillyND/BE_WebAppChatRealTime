@@ -18,6 +18,9 @@ const app = express();
 const port = process.env.PORT;
 const hostname = process.env.HOST_NAME;
 
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
 // Enable CORS for all routes
 app.use(cors());
 app.use(cookieParser());

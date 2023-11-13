@@ -7,10 +7,11 @@ const postController = {
   createPost: async (req, res) => {
     try {
       const users = await User.findById(req.body.userId);
+
       if (req.body.imageUrl) {
-        const result = await cloudinary.uploader.upload(req.body.imageUrl, {
-          upload_preset: "post_image",
-        });
+        const result = await cloudinary.uploader.upload(req.body.imageUrl);
+
+        console.log(">>>result:", result);
         const makePost = {
           ...req.body,
           imageUrl: result.secure_url,
