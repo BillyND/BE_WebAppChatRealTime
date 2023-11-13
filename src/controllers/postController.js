@@ -16,7 +16,7 @@ const postController = {
           imageUrl: result.secure_url,
           cloudinaryId: result.public_id,
           username: users.username,
-          avaUrl: users.profilePicture,
+          avaUrl: users.avaUrl,
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
@@ -25,7 +25,7 @@ const postController = {
         const makePost = {
           ...req.body,
           username: users.username,
-          avaUrl: users.profilePicture,
+          avaUrl: users.avaUrl,
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();

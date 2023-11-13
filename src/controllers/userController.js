@@ -49,14 +49,14 @@ const userController = {
 
       const accessToken = await authController.generateAccessToken(updatedUser);
 
-      if (req.body.profilePicture) {
+      if (req.body.avaUrl) {
         try {
           await Promise.all([
             Post.updateMany(
               { userId: id },
               {
                 $set: {
-                  avaUrl: req.body.profilePicture,
+                  avaUrl: req.body.avaUrl,
                 },
               }
             ),
@@ -64,7 +64,7 @@ const userController = {
               { ownerId: id },
               {
                 $set: {
-                  avaUrl: req.body.profilePicture,
+                  avaUrl: req.body.avaUrl,
                 },
               }
             ),
@@ -132,7 +132,7 @@ const userController = {
         username: { $regex: username, $options: "i" },
       })
         .limit(2)
-        .select("username profilePicture");
+        .select("username avaUrl");
       res.status(200).json(users);
     } catch (err) {
       res.status(500).json(err);

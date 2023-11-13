@@ -15,7 +15,7 @@ const commentController = {
         ...req.body,
         postId: req.params.id,
         username: user.username,
-        avaUrl: user.profilePicture,
+        avaUrl: user.avaUrl,
       };
       const newComment = new Comment(makeComment);
       const savedComment = await newComment.save();
