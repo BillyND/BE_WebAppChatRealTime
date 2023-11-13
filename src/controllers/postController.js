@@ -21,7 +21,11 @@ const postController = {
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
-        return res.status(200).json(savedPost);
+        return res.status(200).json({
+          EC: 0,
+          message: "Create post success!",
+          data: savedPost,
+        });
       } else {
         const makePost = {
           ...req.body,
@@ -30,10 +34,18 @@ const postController = {
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
-        return res.status(200).json(savedPost);
+        return res.status(200).json({
+          EC: 0,
+          message: "Create post success!",
+          data: savedPost,
+        });
       }
     } catch (err) {
-      res.status(500).json(err);
+      res.status(500).json({
+        EC: 1,
+        message: "Server error!",
+        err,
+      });
     }
   },
 
