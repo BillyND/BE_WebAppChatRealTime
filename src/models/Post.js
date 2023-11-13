@@ -20,8 +20,6 @@ const postSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
-      minlength: 4,
     },
     upvotes: {
       type: Array,
