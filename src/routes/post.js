@@ -21,7 +21,7 @@ router.put(
 );
 
 //DELETE A POST
-router.delete(
+router.post(
   "/:id",
   middlewareController.verifyTokenAndUserPostAuthorization,
   postController.deletePost
