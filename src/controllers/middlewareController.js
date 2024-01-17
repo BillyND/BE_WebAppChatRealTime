@@ -91,11 +91,6 @@ const middlewareController = {
           .limit(limit)
           .skip(startIndex)
           .exec();
-
-        res = {
-          ...res,
-          paginatedResults: results,
-        };
         res.paginatedResults = results;
         next();
       } catch (e) {
