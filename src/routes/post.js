@@ -56,18 +56,11 @@ router.post(
   postController.getFriendsPost
 );
 
-//UPVOTE A POST
-router.put(
-  "/:id/upvote",
+//UPDATE LIKE A POST
+router.post(
+  "/likes/:id",
   middlewareController.verifyToken,
-  postController.upvotePost
-);
-
-//DOWNVOTE A POST
-router.put(
-  "/:id/downvote",
-  middlewareController.verifyToken,
-  postController.downvotePost
+  postController.likesPost
 );
 
 router.put(
@@ -75,6 +68,7 @@ router.put(
   middlewareController.verifyToken,
   postController.addFavoritePost
 );
+
 //ADD A COMMENT
 router.post(
   "/comment/:id",

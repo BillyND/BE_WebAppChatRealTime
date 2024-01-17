@@ -11,7 +11,6 @@ const postController = {
       if (req.body.imageUrl) {
         const result = await cloudinary.uploader.upload(req.body.imageUrl);
 
-        console.log(">>>result:", result);
         const makePost = {
           ...req.body,
           imageUrl: result.secure_url,
@@ -72,7 +71,7 @@ const postController = {
       if (post.cloudinaryId) {
         await cloudinary.uploader.destroy(post.cloudinaryId);
       }
-      res.status(200).json("Delete post succesfully");
+      res.status(200).json("Delete post successfully");
     } catch (err) {
       res.status(500).json(err);
     }
@@ -146,6 +145,31 @@ const postController = {
       }
     } catch (err) {
       return res.status(500).json(err);
+    }
+  },
+
+  likesPost: async (req, res) => {
+    try {
+      const postId = req.params.id.trim();
+      const { userId = "" } = req.body || {};
+      const post = await Post.findById(postId);
+      let { likerIds = [] } = post || {};
+
+      if (likerIds.includes(userId)) {
+        likerIds = likerIds.filter((liker) => liker !== userId);
+      } else {
+        likerIds.push(userId);
+      }
+
+      await post.updateOne({ likerIds: likerIds });
+      post.likerIds = likerIds;
+
+      return res.status(200).json({
+        data: post,
+        message: "Update liker of Post successfully!",
+      });
+    } catch (error) {
+      return res.status(500).json(error);
     }
   },
 

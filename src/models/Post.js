@@ -21,11 +21,7 @@ const postSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    upvotes: {
-      type: Array,
-      default: [],
-    },
-    downvotes: {
+    likerIds: {
       type: Array,
       default: [],
     },
