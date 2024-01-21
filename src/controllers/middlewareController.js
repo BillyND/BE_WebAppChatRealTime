@@ -52,7 +52,6 @@ const middlewareController = {
 
   verifyTokenAndUserPostAuthorization: (req, res, next) => {
     middlewareController.verifyToken(req, res, () => {
-      console.log("===>params", JSON.stringify(req.params));
       if (req.user.id === req.params.userId || req.user.isAdmin) {
         next();
       } else {

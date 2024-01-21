@@ -103,4 +103,12 @@ router.delete(
   middlewareController.verifyTokenAndCommentAuthorization,
   commentController.deleteComment
 );
+
+//UPDATE A COMMENT
+router.put(
+  "/comment/:id/:ownerId",
+  middlewareController.verifyTokenAndCommentAuthorization,
+  commentController.updateComment
+);
+
 module.exports = router;

@@ -63,6 +63,31 @@ const commentController = {
       res.status(500).json(err);
     }
   },
+
+  //UPDATE COMMENT
+  updateComment: async (req, res) => {
+    try {
+      const { id: commentId } = req.params;
+      const { content } = req.body;
+      console.log("===>content:", { content, commentId });
+
+      let comment = await Comment.findOneAndUpdate(
+        {
+          _id: commentId,
+        },
+        { content }
+      );
+
+      comment.content = content;
+
+      res.status(200).json({
+        message: "Update comment successfully",
+        data: comment,
+      });
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
 };
 
 module.exports = commentController;
