@@ -52,7 +52,8 @@ const middlewareController = {
 
   verifyTokenAndUserPostAuthorization: (req, res, next) => {
     middlewareController.verifyToken(req, res, () => {
-      if (req.user.id === req.body.userId || req.user.isAdmin) {
+      console.log("===>params", JSON.stringify(req.params));
+      if (req.user.id === req.params.userId || req.user.isAdmin) {
         next();
       } else {
         return res.status(403).json("You're not allowed to do that!");
@@ -62,13 +63,9 @@ const middlewareController = {
 
   verifyTokenAndCommentAuthorization: (req, res, next) => {
     middlewareController.verifyToken(req, res, () => {
-      console.log("req.user.id: " + req.user.id);
-      console.log("ownerId: :" + req.body.ownerId);
-      if (
-        req.user.id === req.body.ownerId ||
-        req.user.isAdmin ||
-        req.user.id === req.body.postId
-      ) {
+      console.log("===>user id in token: " + req.user.id);
+      console.log("===>body :" + req.params.ownerId);
+      if (req.user.id === req.params.ownerId || req.user.isAdmin) {
         next();
       } else {
         return res.status(403).json("You're not allowed to do that!");
@@ -107,6 +104,7 @@ const middlewareController = {
           .skip(startIndex)
           .exec();
         res.paginatedResults = results;
+
         next();
       } catch (e) {
         res.status(500).json({ message: e.message });

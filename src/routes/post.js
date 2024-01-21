@@ -21,8 +21,8 @@ router.put(
 );
 
 //DELETE A POST
-router.post(
-  "/:id",
+router.delete(
+  "/:id/:userId",
   middlewareController.verifyTokenAndUserPostAuthorization,
   postController.deletePost
 );
@@ -99,7 +99,7 @@ router.get(
 
 //DELETE A COMMENT
 router.delete(
-  "/comment/:id",
+  "/comment/:id/:ownerId",
   middlewareController.verifyTokenAndCommentAuthorization,
   commentController.deleteComment
 );
