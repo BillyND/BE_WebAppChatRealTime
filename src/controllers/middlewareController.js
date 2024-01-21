@@ -63,8 +63,6 @@ const middlewareController = {
 
   verifyTokenAndCommentAuthorization: (req, res, next) => {
     middlewareController.verifyToken(req, res, () => {
-      console.log("===>user id in token: " + req.user.id);
-      console.log("===>body :" + req.params.ownerId);
       if (req.user.id === req.params.ownerId || req.user.isAdmin) {
         next();
       } else {
