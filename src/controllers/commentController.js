@@ -69,8 +69,6 @@ const commentController = {
     try {
       const { id: commentId } = req.params;
       const { content } = req.body;
-      console.log("===>content:", { content, commentId });
-
       let comment = await Comment.findOneAndUpdate(
         {
           _id: commentId,
