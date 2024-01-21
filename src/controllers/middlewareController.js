@@ -1,27 +1,42 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 require("dotenv").config();
 const keyAccessToken = process.env.JWT_ACCESS_KEY;
 
 const middlewareController = {
-  verifyToken: (req, res, next) => {
-    const token = req.headers["authorization"];
-    const accessToken = token?.split(" ")[1];
+  verifyToken: async (req, res, next) => {
+    try {
+      const token = req.headers["authorization"];
+      const accessToken = token?.split(" ")[1];
 
-    if (req?.query?.emailAuthor) {
-      next();
-      return;
-    }
+      if (req?.query?.emailAuthor) {
+        next();
+        return;
+      }
 
-    if (accessToken) {
-      jwt.verify(accessToken, keyAccessToken, (err, user) => {
-        if (err) {
-          return res.status(401).json("Token is expired or invalid");
-        }
-        req.user = user;
-        next(); // Place 'next()' outside of the jwt.verify callback
-      });
-    } else {
-      return res.status(403).json("Null token");
+      if (accessToken) {
+        jwt.verify(accessToken, keyAccessToken, async (err, user) => {
+          const { id } = user || {};
+          const { userId = null } = req?.body || {};
+          const finalUserId = userId || id;
+
+          const dataUser = await User.findById({ _id: finalUserId }).catch(
+            (error) => {
+              console.log("===> Error verifyToken" + error);
+            }
+          );
+
+          if (err || !dataUser) {
+            return res.status(401).json("Token is expired or invalid");
+          }
+          req.user = user;
+          next(); // Place 'next()' outside of the jwt.verify callback
+        });
+      } else {
+        return res.status(403).json("Null token");
+      }
+    } catch (error) {
+      return res.status(500).json("Server error!");
     }
   },
 

@@ -6,17 +6,19 @@ const commentController = {
   //ADD A COMMENT
   addComment: async (req, res) => {
     try {
-      const user = await User.findById(req.body.ownerId);
-      await Post.findOneAndUpdate(
-        { _id: req.params.id },
-        { $inc: { comments: 1 } }
-      );
+      const { ownerId } = req.body;
+      const { id: postId } = req.params;
+      const { username, avaUrl } = (await User.findById(ownerId)) || {};
+
+      await Post.findOneAndUpdate({ _id: postId }, { $inc: { comments: 1 } });
+
       const makeComment = {
         ...req.body,
-        postId: req.params.id,
-        username: user.username,
-        avaUrl: user.avaUrl,
+        postId: postId,
+        username: username,
+        avaUrl: avaUrl,
       };
+
       const newComment = new Comment(makeComment);
       const savedComment = await newComment.save();
       res.status(200).json(savedComment);
@@ -34,10 +36,12 @@ const commentController = {
       res.status(500).json(err);
     }
   },
+
   //GET ALL COMMENTS IN A POST
   getCommentsInPost: async (req, res) => {
     try {
-      const comments = await Comment.find({ postId: req.params.id });
+      const { id: postId } = req.params;
+      const comments = await Comment.find({ postId });
       res.status(200).json(comments);
     } catch (err) {
       res.status(500).json(err);
@@ -47,8 +51,9 @@ const commentController = {
   //DELETE COMMENT
   deleteComment: async (req, res) => {
     try {
-      const comment = await Comment.findById(req.params.id);
-      await Comment.findByIdAndDelete(req.params.id);
+      const { id: commentId } = req.params;
+      const comment = await Comment.findById(commentId);
+      await Comment.findByIdAndDelete(commentId);
       await Post.findOneAndUpdate(
         { _id: comment.postId },
         { $inc: { comments: -1 } }
