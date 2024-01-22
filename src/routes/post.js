@@ -15,7 +15,7 @@ router.post(
 
 //UPDATE A POST
 router.put(
-  "/:id",
+  "/:postId/:userId",
   middlewareController.verifyTokenAndUserPostAuthorization,
   postController.updatePost
 );

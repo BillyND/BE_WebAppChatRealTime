@@ -51,10 +51,14 @@ const postController = {
   //UPDATE A POST
   updatePost: async (req, res) => {
     try {
-      const post = await Post.findById(req.params.id.trim());
-      if (post.userId === req.body.userId) {
+      const post = await Post.findById(req.params.postId.trim());
+
+      if (post.userId === req.params.userId) {
         await post.updateOne({ $set: req.body });
-        res.status(200).json("Post has been updated");
+        res.status(200).json({
+          EC: 0,
+          message: "Post has been updated",
+        });
       } else {
         res.status(403).json("You can only update your post");
       }
