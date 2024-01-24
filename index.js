@@ -14,12 +14,19 @@ const userRoute = require("./src/routes/user");
 const messageRoute = require("./src/routes/message");
 const conversationRoute = require("./src/routes/conversation");
 
+let timerCronjobSocket;
+
+// Import code-fetch
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
 // Initialize express app
 const app = express();
 
 // Set up environment variables
 const port = process.env.PORT;
 const hostname = process.env.HOST_NAME;
+const socketUrl = process.env.SOCKET_URL;
 
 // Set up socket.io server
 const httpServer = http.createServer(app);
@@ -107,7 +114,19 @@ app.use("/v1/api/message", messageRoute);
     httpServer.listen(port, hostname, () =>
       console.log(`<=== Socket is running on port ${port} ===>`)
     );
+    cronjobSocketUrl();
   } catch (error) {
     console.log("===> Error connecting to the database", error);
   }
 })();
+
+const cronjobSocketUrl = () => {
+  clearInterval(timerCronjobSocket);
+  timerCronjobSocket = setInterval(() => {
+    console.log("===>Cronjob socket api");
+    fetch(socketUrl)
+      .then((res) => res.json())
+      .then((data) => console.log("===>data fetch:", data))
+      .catch((error) => console.log("===>Error trigger socket:", error));
+  }, 60000);
+};
