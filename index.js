@@ -41,16 +41,15 @@ const io = socketio(httpServer, {
 });
 
 let users = [];
-let initData;
+let comments = [];
 
 // Socket.io functions
-const handleInitData = (data) => {
-  initData = data;
-  io.emit("getData", initData);
+const handleUpdatePost = (post) => {
+  io.emit("getPost", post);
 };
 
 const handleChangeData = (data) => {
-  initData = data;
+  comments = data;
   io.emit("getData", initData);
 };
 
@@ -71,9 +70,7 @@ const handleDisconnect = (socketId) => {
 
 // Socket.io event listeners
 io.on("connection", (socket) => {
-  console.log("===> user connected");
-
-  socket.on("initData", handleInitData);
+  socket.on("updatePost", handleUpdatePost);
   socket.on("changeData", handleChangeData);
   socket.on("addUser", (userId) => handleAddUser(userId, socket.id));
   socket.on("sendMessage", handleSendMessage);
