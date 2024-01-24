@@ -55,7 +55,6 @@ const handleSendMessage = ({ senderId, receiverId, text }) => {
 };
 
 const handleDisconnect = (socketId) => {
-  removeUser(socketId);
   io.emit("getUsers", users);
 };
 
