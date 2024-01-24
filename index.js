@@ -122,7 +122,7 @@ app.use("/v1/api/message", messageRoute);
   try {
     await connection();
     httpServer.listen(port, hostname, () =>
-      console.log(`<=== Socket is running on port ${port} ===>`)
+      console.log(`<=== Server is running on port ${port} ===>`)
     );
     cronjobSocketUrl();
   } catch (error) {
