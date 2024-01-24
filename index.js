@@ -15,6 +15,7 @@ const messageRoute = require("./src/routes/message");
 const conversationRoute = require("./src/routes/conversation");
 
 let timerCronjobSocket;
+let cronjobData = {};
 
 // Import code-fetch
 const fetch = (...args) =>
@@ -89,6 +90,7 @@ app.get("/", (req, res) => {
   res.send({
     EC: 0,
     message: `<=== Web chat API is running on port ${port} ===>`,
+    cronjobData,
   });
 });
 
@@ -126,7 +128,12 @@ const cronjobSocketUrl = () => {
     console.log("===>Cronjob socket api");
     fetch(socketUrl)
       .then((res) => res.json())
-      .then((data) => console.log("===>data fetch:", data))
+      .then((data) => {
+        cronjobData = {
+          time: `${new Date()}`,
+          data,
+        };
+      })
       .catch((error) => console.log("===>Error trigger socket:", error));
   }, 60000);
 };
