@@ -29,6 +29,7 @@ const app = express();
 const port = process.env.PORT;
 const hostname = process.env.HOST_NAME;
 const socketUrl = process.env.SOCKET_URL;
+const productionUrl = process.env.PRODUCTION_URL;
 
 // Set up socket.io server
 const httpServer = http.createServer(app);
@@ -131,8 +132,22 @@ const cronjobSocketUrl = (force) => {
       .then((res) => res.json())
       .then((data) => {
         cronjobData = {
-          time: formattedGmt7Date(),
-          data,
+          ...cronjobData,
+          socket: {
+            time: formattedGmt7Date(),
+          },
+        };
+      })
+      .catch((error) => console.log("===>Error trigger socket:", error));
+
+    fetch(productionUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        cronjobData = {
+          ...cronjobData,
+          api: {
+            time: formattedGmt7Date(),
+          },
         };
       })
       .catch((error) => console.log("===>Error trigger socket:", error));
