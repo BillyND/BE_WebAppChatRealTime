@@ -124,37 +124,37 @@ app.use("/v1/api/message", messageRoute);
     httpServer.listen(port, hostname, () =>
       console.log(`<=== Socket is running on port ${port} ===>`)
     );
-    // cronjobSocketUrl();
+    cronjobSocketUrl();
   } catch (error) {
     console.log("===> Error connecting to the database", error);
   }
 })();
 
-// const cronjobSocketUrl = (force) => {
-//   clearInterval(timerCronjobSocket);
-//   timerCronjobSocket = setInterval(() => {
-//     fetch(socketUrl)
-//       .then((res) => res.json())
-//       .then((data) => {
-//         cronjobData = {
-//           ...cronjobData,
-//           socket: {
-//             time: formattedGmt7Date(),
-//           },
-//         };
-//       })
-//       .catch((error) => console.log("===>Error trigger socket:", error));
+const cronjobSocketUrl = (force) => {
+  clearInterval(timerCronjobSocket);
+  timerCronjobSocket = setInterval(() => {
+    fetch(socketUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        cronjobData = {
+          ...cronjobData,
+          socket: {
+            time: formattedGmt7Date(),
+          },
+        };
+      })
+      .catch((error) => console.log("===>Error trigger socket:", error));
 
-//     fetch(productionUrl)
-//       .then((res) => res.json())
-//       .then((data) => {
-//         cronjobData = {
-//           ...cronjobData,
-//           api: {
-//             time: formattedGmt7Date(),
-//           },
-//         };
-//       })
-//       .catch((error) => console.log("===>Error trigger socket:", error));
-//   }, timeDelayCronjob);
-// };
+    fetch(productionUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        cronjobData = {
+          ...cronjobData,
+          api: {
+            time: formattedGmt7Date(),
+          },
+        };
+      })
+      .catch((error) => console.log("===>Error trigger socket:", error));
+  }, timeDelayCronjob);
+};
