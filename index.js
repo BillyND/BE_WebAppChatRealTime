@@ -48,6 +48,10 @@ const handleUpdatePost = (post) => {
   io.emit("getPost", post);
 };
 
+const handleUpdateComment = (post) => {
+  io.emit("getComment", post);
+};
+
 const handleChangeData = (data) => {
   comments = data;
   io.emit("getData", initData);
@@ -70,7 +74,11 @@ const handleDisconnect = (socketId) => {
 
 // Socket.io event listeners
 io.on("connection", (socket) => {
+  // Post
   socket.on("updatePost", handleUpdatePost);
+
+  //Comment
+  socket.on("updateComment", handleUpdateComment);
   socket.on("changeData", handleChangeData);
   socket.on("addUser", (userId) => handleAddUser(userId, socket.id));
   socket.on("sendMessage", handleSendMessage);
