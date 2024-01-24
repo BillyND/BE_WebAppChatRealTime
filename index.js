@@ -11,8 +11,76 @@ const userRoute = require("./src/routes/user");
 const messageRoute = require("./src/routes/message");
 const conversationRoute = require("./src/routes/conversation");
 const cookieParser = require("cookie-parser");
-
 const app = express();
+
+//Config socket.io
+const socketio = require("socket.io");
+const http = require("http");
+const server = http.createServer(app);
+const SOCKET_PORT = process.env.SOCKET_PORT || 8082;
+
+server.listen(
+  SOCKET_PORT,
+  () => `<=== Socket is running on port ${SOCKET_PORT} ===>`
+);
+
+const io = socketio(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+let users = [];
+
+const addUser = (userId, socketId) => {
+  !users.some((user) => user.userId === userId) &&
+    users.push({ userId, socketId });
+};
+
+const removeUser = (socketId) => {
+  users = users.filter((user) => user.socketId !== socketId);
+};
+
+const getUser = (userId) => {
+  return users.find((user) => user.userId === userId);
+};
+let initData;
+
+io.on("connection", (socket) => {
+  console.log("===> user connected");
+  socket.on("initData", (data) => {
+    initData = data;
+    io.emit("getData", initData);
+  });
+
+  socket.on("changeData", (data) => {
+    initData = data;
+    io.emit("getData", initData);
+  });
+
+  socket.on("addUser", (userId) => {
+    console.log("===> user:", userId);
+    addUser(userId, socket.id);
+    io.emit("getUsers", users);
+  });
+
+  //send, get message
+  socket.on("sendMessage", ({ senderId, receiverId, text }) => {
+    console.log("users: " + users);
+    const user = getUser(receiverId);
+    console.log(user);
+    io.to(user?.socketId).emit("getMessage", {
+      senderId,
+      text,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("===> user disconnected");
+    removeUser(socket.id);
+    io.emit("getUsers", users);
+  });
+});
 
 // Set environment variables
 const port = process.env.PORT;
@@ -31,7 +99,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.send({
     EC: 0,
-    message: "<=== Web chat API is running ===>",
+    message: `<=== Web chat API is running on port ${port} ===>`,
   });
 });
 
@@ -55,9 +123,9 @@ app.use("/v1/api/message", messageRoute);
   try {
     await connection();
     app.listen(port, hostname, () => {
-      console.log(`>>> Web chat is running on port ${port}`);
+      console.log(`===> Web chat is running on port ${port}`);
     });
   } catch (error) {
-    console.log(">>> Error connecting to the database", error);
+    console.log("===> Error connecting to the database", error);
   }
 })();
