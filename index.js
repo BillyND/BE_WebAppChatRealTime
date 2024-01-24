@@ -13,6 +13,7 @@ const postRoute = require("./src/routes/post");
 const userRoute = require("./src/routes/user");
 const messageRoute = require("./src/routes/message");
 const conversationRoute = require("./src/routes/conversation");
+const { formattedGmt7Date } = require("./src/utils/utilities");
 
 let timerCronjobSocket;
 let cronjobData = {};
@@ -122,7 +123,7 @@ app.use("/v1/api/message", messageRoute);
   }
 })();
 
-const cronjobSocketUrl = () => {
+const cronjobSocketUrl = (force) => {
   clearInterval(timerCronjobSocket);
   timerCronjobSocket = setInterval(() => {
     console.log("===>Cronjob socket api");
@@ -130,7 +131,7 @@ const cronjobSocketUrl = () => {
       .then((res) => res.json())
       .then((data) => {
         cronjobData = {
-          time: `${new Date()}`,
+          time: formattedGmt7Date(),
           data,
         };
       })
