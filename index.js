@@ -30,6 +30,7 @@ const port = process.env.PORT;
 const hostname = process.env.HOST_NAME;
 const socketUrl = process.env.SOCKET_URL;
 const productionUrl = process.env.PRODUCTION_URL;
+const timeDelayCronjob = process.env.TIME_DELAY_CRONJOB;
 
 // Set up socket.io server
 const httpServer = http.createServer(app);
@@ -127,7 +128,6 @@ app.use("/v1/api/message", messageRoute);
 const cronjobSocketUrl = (force) => {
   clearInterval(timerCronjobSocket);
   timerCronjobSocket = setInterval(() => {
-    console.log("===>Cronjob socket api");
     fetch(socketUrl)
       .then((res) => res.json())
       .then((data) => {
@@ -151,5 +151,5 @@ const cronjobSocketUrl = (force) => {
         };
       })
       .catch((error) => console.log("===>Error trigger socket:", error));
-  }, 60000);
+  }, timeDelayCronjob);
 };
