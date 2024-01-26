@@ -52,11 +52,6 @@ const handleUpdateComment = (post) => {
   io.emit("getComment", post);
 };
 
-const handleChangeData = (data) => {
-  comments = data;
-  io.emit("getData", initData);
-};
-
 const handleAddUser = (userId, socketId) => {
   !users.some((user) => user.userId === userId) &&
     users.push({ userId, socketId });
@@ -79,7 +74,6 @@ io.on("connection", (socket) => {
 
   //Comment
   socket.on("updateComment", handleUpdateComment);
-  socket.on("changeData", handleChangeData);
   socket.on("addUser", (userId) => handleAddUser(userId, socket.id));
   socket.on("sendMessage", handleSendMessage);
   socket.on("disconnect", () => handleDisconnect(socket.id));
