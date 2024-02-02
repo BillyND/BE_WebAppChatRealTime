@@ -150,29 +150,5 @@ const cronjobSocketUrl = (force) => {
         };
       })
       .catch((error) => console.log("===>Error trigger socket:", error));
-
-    setInterval(() => {
-      fetch(`https://rc.pagefly.io/api/saved-filters`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczpcL1wvbG9uZ25kMS5teXNob3BpZnkuY29tXC9hZG1pbiIsImRlc3QiOiJodHRwczpcL1wvbG9uZ25kMS5teXNob3BpZnkuY29tIiwiYXVkIjoiYzA1MTMwMjM4M2Y1ZWE4ZmNjMDNhNzc0ZmM5N2JlY2IiLCJzdWIiOiI5NjU4MjIzODQ4NSIsImV4cCI6MTcwMDEzMDEzMiwibmJmIjoxNzAwMTMwMDcyLCJpYXQiOjE3MDAxMzAwNzIsImp0aSI6IjliNGU5YTM2LTIyM2EtNDJlMS1iMTkyLWRmNGUxOTBlZGY5OCIsInNpZCI6IjQ1MmMwMGE4MGU5Njk4M2NkYmJmYmY3MWMwZDY5NTc0M2UzYjY0ZWNjYjIwZjBjMWUwNmQzN2RhYjc4NDEyYWUiLCJzaWciOiI2YTI0YThkNGUwMjk0YmY2N2E1M2VmMzQzNGRkNGVlYTg1MDQ2OGNhZTU1ZmUwOGE4ODFmMmU5N2ZjZWFlY2E4In0.C-iUXFSvKJKXnIXUvBa2We_Tb8x5UXGB-fqeSCjON-A`,
-        },
-        method: "GET",
-      })
-        .then((res) => res.json())
-        .then((data) => console.log("===>data", { data, time: new Date() }));
-    }, Math.floor(Math.random() * 451) + 50);
-    setInterval(() => {
-      fetch(
-        `https://36cf-2a09-bac1-7a80-50-00-245-6c.ngrok-free.app/api/saved-filters`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczpcL1wvbG9uZ25kMS5teXNob3BpZnkuY29tXC9hZG1pbiIsImRlc3QiOiJodHRwczpcL1wvbG9uZ25kMS5teXNob3BpZnkuY29tIiwiYXVkIjoiYzA1MTMwMjM4M2Y1ZWE4ZmNjMDNhNzc0ZmM5N2JlY2IiLCJzdWIiOiI5NjU4MjIzODQ4NSIsImV4cCI6MTcwMDEzMDEzMiwibmJmIjoxNzAwMTMwMDcyLCJpYXQiOjE3MDAxMzAwNzIsImp0aSI6IjliNGU5YTM2LTIyM2EtNDJlMS1iMTkyLWRmNGUxOTBlZGY5OCIsInNpZCI6IjQ1MmMwMGE4MGU5Njk4M2NkYmJmYmY3MWMwZDY5NTc0M2UzYjY0ZWNjYjIwZjBjMWUwNmQzN2RhYjc4NDEyYWUiLCJzaWciOiI2YTI0YThkNGUwMjk0YmY2N2E1M2VmMzQzNGRkNGVlYTg1MDQ2OGNhZTU1ZmUwOGE4ODFmMmU5N2ZjZWFlY2E4In0.C-iUXFSvKJKXnIXUvBa2We_Tb8x5UXGB-fqeSCjON-A`,
-          },
-          method: "GET",
-        }
-      );
-    }, Math.floor(Math.random() * 1000) + 500);
   }, timeDelayCronjob);
 };
