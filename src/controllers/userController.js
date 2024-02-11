@@ -15,6 +15,15 @@ const userController = {
     }
   },
 
+  //GET ALL USERS
+  getAllUsers: async (req, res) => {
+    try {
+      res.status(200).json(res.paginatedResults);
+    } catch (err) {
+      return res.status(500).json(err);
+    }
+  },
+
   //DELETE A USER
   deleteUser: async (req, res) => {
     const { userId } = req.body;
@@ -84,7 +93,7 @@ const userController = {
     }
   },
 
-  //FOLLOW/UNFOLLOW A USER
+  // FOLLOW/UNFOLLOW A USER
   followUser: async (req, res) => {
     const { userId } = req.body;
     const { id } = req.params;
@@ -124,7 +133,7 @@ const userController = {
     }
   },
 
-  //SEARCH USERS BY NAME
+  //SEARCH USERS BY NAME/EMAIL
   searchAllUser: async (req, res) => {
     try {
       const { username } = req.body || {};
@@ -134,7 +143,7 @@ const userController = {
           { username: { $regex: username, $options: "i" } },
           { email: { $regex: username, $options: "i" } },
         ],
-      }).select("username avaUrl");
+      });
 
       res.status(200).json(users);
     } catch (err) {
