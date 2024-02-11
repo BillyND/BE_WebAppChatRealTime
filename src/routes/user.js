@@ -27,6 +27,10 @@ router.put(
 );
 
 //SEARCH FOR USERS
-router.get("/", middlewareController.verifyToken, userController.searchAllUser);
+router.post(
+  "/search",
+  middlewareController.verifyToken,
+  userController.searchAllUser
+);
 
 module.exports = router;

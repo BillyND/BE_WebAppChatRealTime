@@ -124,15 +124,18 @@ const userController = {
     }
   },
 
-  //SEARCH FOR USERS
+  //SEARCH USERS BY NAME
   searchAllUser: async (req, res) => {
     try {
-      const username = req.query.username;
+      const { username } = req.body || {};
+
       const users = await User.find({
-        username: { $regex: username, $options: "i" },
-      })
-        .limit(2)
-        .select("username avaUrl");
+        $or: [
+          { username: { $regex: username, $options: "i" } },
+          { email: { $regex: username, $options: "i" } },
+        ],
+      }).select("username avaUrl");
+
       res.status(200).json(users);
     } catch (err) {
       res.status(500).json(err);

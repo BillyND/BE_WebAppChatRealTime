@@ -45,8 +45,6 @@ const setupSocketIO = (app) => {
 
   // Socket.io event listeners
   io.on("connection", (socket) => {
-    console.log("===>connection:", socket.id);
-
     // Register events from client
     socket.on("updatePost", (post) => handleUpdatePost(io, post, socket.id));
     socket.on("updateComment", (comment) =>
