@@ -8,10 +8,6 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
     },
-    displayName: {
-      type: String,
-      default: "New User",
-    },
     about: {
       type: String,
       default: "I'm a new user",
@@ -19,16 +15,19 @@ const userSchema = new mongoose.Schema(
     age: {
       type: Number,
       minlength: 14,
-      default: 99,
+      default: null,
     },
     email: {
       type: String,
       required: [true, "Required"],
+      maxlength: [50, "Must be 50 characters or less"],
       unique: true,
+      validate: [isEmail, "Please enter a valid email"],
     },
     password: {
       type: String,
       required: [true, "Required"],
+      minlength: [6, "Must be 6 characters or more"],
     },
     isAdmin: {
       type: Boolean,
@@ -43,10 +42,6 @@ const userSchema = new mongoose.Schema(
       default: [],
     },
     followings: {
-      type: Array,
-      default: [],
-    },
-    favorites: {
       type: Array,
       default: [],
     },
