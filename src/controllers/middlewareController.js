@@ -75,11 +75,24 @@ const middlewareController = {
       try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const userId = req.query.userId;
+        const email = req.query.email;
 
-        const optionQuery = ["undefined", "null"].includes(userId)
+        const currentUser = await User.findOne({ email }).select([
+          "_id",
+          "username",
+          "email",
+          "avaUrl",
+          "followers",
+          "followings",
+          "about",
+          "email",
+          "createdAt",
+          "isAdmin",
+        ]);
+
+        const optionQuery = ["undefined", "null"].includes(email)
           ? {}
-          : { userId };
+          : { userId: currentUser?._id };
 
         const totalDocuments = await model.countDocuments(optionQuery);
         const startIndex = (page - 1) * limit;
@@ -92,6 +105,8 @@ const middlewareController = {
           .limit(limit);
 
         const resultsPaginated = { results };
+
+        resultsPaginated.currentUser = currentUser;
 
         if (endIndex < totalDocuments) {
           resultsPaginated.next = { page: page + 1, limit };
