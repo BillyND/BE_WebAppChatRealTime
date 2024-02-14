@@ -110,7 +110,6 @@ const postController = {
 
   //GET ALL POSTS
   getAllPosts: async (req, res) => {
-    console.log("===>res:", Object.keys(res));
     try {
       res.status(200).json(res.paginatedResults);
     } catch (err) {
