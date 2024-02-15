@@ -22,7 +22,7 @@ const middlewareController = {
 
           const dataUser = await User.findById({ _id: finalUserId }).catch(
             (error) => {
-              console.log("===> Error verifyToken" + error);
+              console.log("===> Error verifyToken: " + error);
             }
           );
 
