@@ -42,4 +42,11 @@ router.post(
   userController.searchAllUser
 );
 
+//SAVE PROFILE USER
+router.post(
+  "/:id/profile",
+  middlewareController.verifyToken,
+  userController.saveProfileUser
+);
+
 module.exports = router;

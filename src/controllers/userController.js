@@ -150,6 +150,28 @@ const userController = {
       res.status(500).json(err);
     }
   },
+
+  //SAVE PROFILE USER
+  saveProfileUser: async (req, res) => {
+    try {
+      const { username, about } = req.body || {};
+      const { id: userId } = req.user || {};
+
+      if (!username.trim()) {
+        return res.status(200).json(null);
+      }
+
+      await User.updateOne(
+        { _id: userId },
+        { username: username?.trim(), about: about?.trim() }
+      );
+      const userUpdated = await User.findById(userId);
+
+      res.status(200).json(userUpdated);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
 };
 
 module.exports = userController;
