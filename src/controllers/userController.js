@@ -154,7 +154,7 @@ const userController = {
   //SAVE PROFILE USER
   saveProfileUser: async (req, res) => {
     try {
-      const { username, about } = req.body || {};
+      const { username, about, avaUrl } = req.body || {};
       const { id: userId } = req.user || {};
 
       if (!username.trim()) {
@@ -163,7 +163,7 @@ const userController = {
 
       await User.updateOne(
         { _id: userId },
-        { username: username?.trim(), about: about?.trim() }
+        { username: username?.trim(), about: about?.trim(), avaUrl }
       );
       const userUpdated = await User.findById(userId);
 
