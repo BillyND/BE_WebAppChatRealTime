@@ -187,13 +187,13 @@ const userController = {
           avaUrl: result.secure_url,
           cloudinaryId: result.public_id,
         };
-
-        // Update the avatar URL in all posts by this user
-        await Post.updateMany(
-          { userId: userId },
-          { avaUrl: result.secure_url }
-        );
       }
+
+      // Update the avatar URL in all posts by this user
+      await Post.updateMany(
+        { userId: userId },
+        { avaUrl: dataUpdated.avaUrl, username: username }
+      );
 
       // Update user information
       await user.updateOne({ $set: dataUpdated });
