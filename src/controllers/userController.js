@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const bcrypt = require("bcrypt");
 const authController = require("./authController");
+const { cloudinary } = require("../utils/cloudinary");
 
 const userController = {
   //GET A USER
@@ -154,20 +155,51 @@ const userController = {
   //SAVE PROFILE USER
   saveProfileUser: async (req, res) => {
     try {
+      // Extracting necessary data from request body and user object
       const { username, about, avaUrl } = req.body || {};
       const { id: userId } = req.user || {};
 
+      // If username is empty, return null response with a message
       if (!username.trim()) {
-        return res.status(200).json(null);
+        return res.status(200).json({ message: "Username cannot be empty." });
       }
 
-      await User.updateOne(
-        { _id: userId },
-        { username: username?.trim(), about: about?.trim(), avaUrl }
-      );
-      const userUpdated = await User.findById(userId);
+      // Find the user by their ID
+      const user = await User.findById(userId);
 
-      res.status(200).json(userUpdated);
+      // Prepare updated data for user
+      let dataUpdated = {
+        username: username?.trim(),
+        about: about?.trim(),
+      };
+
+      // If there's a new avatar URL and it's different from the current one
+      if (avaUrl && avaUrl.trim() !== user.avaUrl.trim()) {
+        // Delete the previous avatar from cloudinary
+        cloudinary.uploader.destroy(user.cloudinaryId);
+
+        // Upload the new avatar to cloudinary
+        const result = await cloudinary.uploader.upload(avaUrl);
+
+        // Update data with new avatar URL and cloudinary ID
+        dataUpdated = {
+          ...dataUpdated,
+          avaUrl: result.secure_url,
+          cloudinaryId: result.public_id,
+        };
+
+        // Update the avatar URL in all posts by this user
+        await Post.updateMany(
+          { userId: userId },
+          { avaUrl: result.secure_url }
+        );
+      }
+
+      // Update user information
+      await user.updateOne({ $set: dataUpdated });
+      const updatedUser = await User.findById(userId);
+
+      res.status(200).json(updatedUser);
     } catch (err) {
       res.status(500).json(err);
     }

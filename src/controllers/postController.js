@@ -52,13 +52,42 @@ const postController = {
   //UPDATE A POST
   updatePost: async (req, res) => {
     try {
+      // Find the post by its ID
       const post = await Post.findById(req.params.postId.trim());
+      const { imageUrl: newImageUrl } = req.body || {};
+      const { imageUrl: currentImageUrl } = post || {};
 
+      let newResultImage = {};
+
+      // If the current image URL is different from the new one, update the image
+      if (currentImageUrl.trim() !== newImageUrl.trim()) {
+        // Delete the previous image from cloudinary
+        post?.cloudinaryId && cloudinary.uploader.destroy(post.cloudinaryId);
+
+        // Upload the new image to cloudinary
+        const result = await cloudinary.uploader.upload(newImageUrl);
+
+        // Prepare data for the new image
+        newResultImage = {
+          imageUrl: result.secure_url,
+          cloudinaryId: result.public_id,
+        };
+      }
+
+      // Combine existing post data with new image data
+      const dataUpdated = {
+        ...req.body,
+        ...newResultImage,
+      };
+
+      // Check if the user is the owner of the post
       if (post.userId === req.params.userId) {
-        await post.updateOne({ $set: req.body });
+        // Update the post and return success message
+        const resUpdate = await post.updateOne({ $set: dataUpdated });
         res.status(200).json({
           EC: 0,
           message: "Post has been updated",
+          resUpdate,
         });
       } else {
         res.status(403).json("You can only update your post");
@@ -73,6 +102,7 @@ const postController = {
     try {
       const post = await Post.findById(req.params.id);
       await Post.findByIdAndDelete(req.params.id);
+
       if (post.cloudinaryId) {
         await cloudinary.uploader.destroy(post.cloudinaryId);
       }
