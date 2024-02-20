@@ -12,6 +12,26 @@ require("dotenv").config();
 let refreshTokens = [];
 
 const authController = {
+  getInfoUser: async (req, res) => {
+    try {
+      const { id: userId } = req.user || {};
+
+      const user = await User.findById(userId);
+
+      return res.status(200).json({
+        EC: 0,
+        data: user,
+        message: "Get info user successful!",
+      });
+    } catch (error) {
+      res.status(500).json({
+        EC: -2,
+        data: error,
+        message: "Server error!",
+      });
+    }
+  },
+
   registerUser: async (req, res) => {
     try {
       const { email, password, username } = req.body;
