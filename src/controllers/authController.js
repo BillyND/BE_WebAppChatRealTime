@@ -18,9 +18,11 @@ const authController = {
 
       const user = await User.findById(userId);
 
+      const { password, ...others } = user._doc;
+
       return res.status(200).json({
         EC: 0,
-        data: user,
+        data: others,
         message: "Get info user successful!",
       });
     } catch (error) {
