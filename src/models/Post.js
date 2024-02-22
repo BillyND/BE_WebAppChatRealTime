@@ -9,6 +9,9 @@ const postSchema = new mongoose.Schema(
     username: {
       type: String,
     },
+    userEmail: {
+      type: String,
+    },
     avaUrl: {
       type: String,
     },

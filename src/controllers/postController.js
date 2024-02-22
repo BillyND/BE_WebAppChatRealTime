@@ -18,6 +18,7 @@ const postController = {
           cloudinaryId: result.public_id,
           username: users.username,
           avaUrl: users.avaUrl,
+          userEmail: users.email,
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
@@ -31,6 +32,7 @@ const postController = {
           ...req.body,
           username: users.username,
           avaUrl: users.avaUrl,
+          userEmail: users.email,
         };
         const newPost = new Post(makePost);
         const savedPost = await newPost.save();
@@ -60,12 +62,13 @@ const postController = {
       let newResultImage = {};
 
       // If the current image URL is different from the new one, update the image
-      if (currentImageUrl.trim() !== newImageUrl.trim()) {
+      if (currentImageUrl?.trim() !== newImageUrl?.trim()) {
         // Delete the previous image from cloudinary
         post?.cloudinaryId && cloudinary.uploader.destroy(post.cloudinaryId);
 
         // Upload the new image to cloudinary
-        const result = await cloudinary.uploader.upload(newImageUrl);
+        const result =
+          (await cloudinary.uploader.upload(newImageUrl).catch(() => {})) ?? {};
 
         // Prepare data for the new image
         newResultImage = {
