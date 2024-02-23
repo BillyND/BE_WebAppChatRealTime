@@ -1,3 +1,6 @@
+const Post = require("../models/Post");
+const User = require("../models/User");
+
 const formattedGmt7Date = (time) => {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Bangkok",
@@ -11,4 +14,28 @@ const formattedGmt7Date = (time) => {
   }).format(new Date());
 };
 
-module.exports = { formattedGmt7Date };
+const processUpdateAllPost = async () => {
+  const allPosts = await Post.find({});
+
+  const allListPostDontHaveUserEmail = allPosts.filter(
+    (post) => !post.userEmail
+  );
+
+  console.log("===>herere", allListPostDontHaveUserEmail);
+
+  allListPostDontHaveUserEmail.forEach(async (post) => {
+    const { userId } = post || {};
+    const infoUser = await User.findById(userId);
+    const { email } = infoUser || {};
+
+    const resUpdatePost = await Post.updateOne(
+      { _id: post._id },
+      { $set: { userEmail: email } },
+      { upsert: true }
+    );
+
+    console.log("===>resUpdatePost:", allListPostDontHaveUserEmail);
+  });
+};
+
+module.exports = { formattedGmt7Date, processUpdateAllPost };
