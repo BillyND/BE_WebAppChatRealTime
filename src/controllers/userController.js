@@ -169,6 +169,7 @@ const userController = {
 
       // Prepare updated data for user
       let dataUpdated = {
+        avaUrl: user.avaUrl,
         username: username?.trim(),
         about: about?.trim(),
       };
@@ -189,14 +190,37 @@ const userController = {
         };
       }
 
-      // Update the avatar URL in all posts by this user
-      await Post.updateMany(
-        { userId: userId },
-        { avaUrl: dataUpdated.avaUrl, username: username }
+      // Create an array of promises to be performed
+      const promises = [];
+
+      // Promise to update the avatar URL and username in posts
+      promises.push(
+        Post.updateMany(
+          { userId: userId },
+          {
+            avaUrl: dataUpdated.avaUrl,
+            username: username,
+          }
+        )
+      );
+
+      // Promise to update the avatar URL and username in comments
+      promises.push(
+        Comment.updateMany(
+          { ownerId: userId },
+          {
+            avaUrl: dataUpdated.avaUrl,
+            username: username,
+          }
+        )
       );
 
       // Update user information
-      await user.updateOne({ $set: dataUpdated });
+      promises.push(user.updateOne({ $set: dataUpdated }));
+
+      // Use Promise.all() to wait for all promises to complete
+      await Promise.all(promises);
+
       const updatedUser = await User.findById(userId);
 
       res.status(200).json(updatedUser);
