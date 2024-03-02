@@ -4,6 +4,9 @@ const Comment = require("../models/Comment");
 const bcrypt = require("bcrypt");
 const authController = require("./authController");
 const { cloudinary } = require("../utils/cloudinary");
+const { apiReportProblem } = require("../utils/constant");
+
+let cachedDataReport = {};
 
 const userController = {
   //GET A USER
@@ -226,6 +229,43 @@ const userController = {
       res.status(200).json(updatedUser);
     } catch (err) {
       res.status(500).json(err);
+    }
+  },
+
+  reportProblem: async (req, res) => {
+    try {
+      const { id } = req.user || {};
+      const { detailProblem } = req.body || {};
+      const user = await User.findById(id);
+      const { email } = user || {};
+
+      // Delay 30 secondS
+      if (Date.now() - Number(cachedDataReport?.[id]) < 30000) {
+        return res.status(200).json({
+          success: 0,
+          message: "Please wait 30 seconds to report back!",
+        });
+      }
+
+      const resReportProblem = await fetch(apiReportProblem, {
+        method: "POST",
+        body: JSON.stringify({
+          detailProblem,
+          userEmail: email,
+        }),
+      }).then((res) => res.json());
+
+      cachedDataReport[id] = Date.now();
+
+      res.status(200).json({
+        success: 1,
+        ...resReportProblem,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Server error!",
+        error,
+      });
     }
   },
 };

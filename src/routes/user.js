@@ -49,4 +49,11 @@ router.post(
   userController.saveProfileUser
 );
 
+//REPORT PROBLEM
+router.post(
+  "/report-problem",
+  middlewareController.verifyToken,
+  userController.reportProblem
+);
+
 module.exports = router;
