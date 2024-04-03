@@ -13,6 +13,7 @@ const messageRoute = require("./src/routes/message");
 const conversationRoute = require("./src/routes/conversation");
 const { formattedGmt7Date } = require("./src/utils/utilities");
 const setupSocketIO = require("./src/socketManager");
+const Post = require("./src/models/Post");
 
 let timerCronjobSocket;
 let cronjobData = {};
@@ -43,10 +44,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Default route
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+  const numberPosts = await Post.countDocuments({});
+
   res.send({
     EC: 0,
     message: `<=== Web chat API is running on port ${port} ===>`,
+    numberPosts,
     cronjobData,
   });
 });
