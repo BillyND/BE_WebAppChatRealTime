@@ -235,15 +235,22 @@ const userController = {
   reportProblem: async (req, res) => {
     try {
       const { id } = req.user || {};
-      const { detailProblem } = req.body || {};
+      const { detailProblem, timeReport } = req.body || {};
       const user = await User.findById(id);
       const { email } = user || {};
 
-      // Delay 30 secondS
-      if (Date.now() - Number(cachedDataReport?.[id]) < 30000) {
+      // Delay 30 seconds
+      if (Date.now() - Number(cachedDataReport?.[id]) < 31000) {
         return res.status(200).json({
           success: 0,
           message: "Please wait 30 seconds to report back!",
+        });
+      }
+
+      if (!detailProblem?.trim()) {
+        return res.status(200).json({
+          success: 0,
+          message: "Detail problem cannot be left blank!",
         });
       }
 
@@ -255,7 +262,7 @@ const userController = {
         }),
       }).then((res) => res.json());
 
-      cachedDataReport[id] = Date.now();
+      cachedDataReport[id] = timeReport;
 
       res.status(200).json({
         success: 1,
