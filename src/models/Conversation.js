@@ -9,6 +9,20 @@ const ConversationSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    user1: {
+      userId: String,
+      avaUrl: String,
+      username: String,
+      lastMessage: String,
+      timeSendLast: Date,
+    },
+    user2: {
+      userId: String,
+      avaUrl: String,
+      username: String,
+      lastMessage: String,
+      timeSendLast: Date,
+    },
   },
   { timestamps: true }
 );

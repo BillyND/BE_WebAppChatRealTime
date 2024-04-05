@@ -142,12 +142,21 @@ const userController = {
     try {
       const { username } = req.body || {};
 
-      const users = await User.find({
-        $or: [
-          { username: { $regex: username, $options: "i" } },
-          { email: { $regex: username, $options: "i" } },
-        ],
-      });
+      const users = await User.find(
+        {
+          $or: [
+            { username: { $regex: username, $options: "i" } },
+            { email: { $regex: username, $options: "i" } },
+          ],
+        },
+        {
+          avaUrl: 1,
+          email: 1,
+          username: 1,
+          avatar: 1,
+          followings: 1,
+        }
+      );
 
       res.status(200).json(users);
     } catch (err) {

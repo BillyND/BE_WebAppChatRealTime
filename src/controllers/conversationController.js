@@ -11,6 +11,7 @@ const conversationController = {
       res.status(500).json(err);
     }
   },
+
   getConversation: async (req, res) => {
     try {
       const conversation = await Conversation.find({
@@ -21,7 +22,8 @@ const conversationController = {
       res.status(500).json(err);
     }
   },
-  //GET AVAILABLE CONVERSATION
+
+  // Get available conversation.
   getAvailableConversation: async (req, res) => {
     try {
       const conversation = await Conversation.findOne({
