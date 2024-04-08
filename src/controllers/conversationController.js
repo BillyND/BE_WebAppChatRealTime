@@ -1,8 +1,10 @@
 const Conversation = require("../models/Conversation");
 const conversationController = {
   createConversation: async (req, res) => {
+    const { senderId, receiverId, user1, user2 } = rew.body || {};
+
     const newConversation = new Conversation({
-      members: [req.body.senderId, req.body.receiverId],
+      members: [senderId, receiverId, user1, user2],
     });
     try {
       const savedConversation = await newConversation.save();
@@ -16,7 +18,8 @@ const conversationController = {
     try {
       const conversation = await Conversation.find({
         members: { $in: [req.params.userId] },
-      });
+      }).sort({ updatedAt: -1 });
+
       res.status(200).json(conversation);
     } catch (err) {
       res.status(500).json(err);

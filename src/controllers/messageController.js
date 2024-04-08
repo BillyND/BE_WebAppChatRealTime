@@ -2,6 +2,7 @@ const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
 
 const messageController = {
+  // Handle create message.
   createMessage: async (req, res) => {
     try {
       const newMessage = new Message(req.body);
@@ -17,11 +18,16 @@ const messageController = {
       res.status(500).json(error);
     }
   },
+
+  // Handle get message.
   getMessage: async (req, res) => {
     try {
+      const { conversationId } = req.params || {};
+
       const messages = await Message.find({
-        conversationId: req.params.conversationId,
+        conversationId: conversationId,
       });
+
       res.status(200).json(messages);
     } catch (error) {
       res.status(500).json(error);
