@@ -141,12 +141,18 @@ const userController = {
   searchAllUser: async (req, res) => {
     try {
       const { username } = req.body || {};
+      const { id: currentUserId } = req.user || {};
 
       const users = await User.find(
         {
-          $or: [
-            { username: { $regex: username, $options: "i" } },
-            { email: { $regex: username, $options: "i" } },
+          $and: [
+            { _id: { $ne: currentUserId } },
+            {
+              $or: [
+                { username: { $regex: username.trim(), $options: "i" } },
+                { email: { $regex: username.trim(), $options: "i" } },
+              ],
+            },
           ],
         },
         {
