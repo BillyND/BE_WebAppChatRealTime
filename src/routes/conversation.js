@@ -16,6 +16,13 @@ router.get(
   conversationController.getConversation
 );
 
+//GET CONVERSATION BY RECEIVER
+router.get(
+  "/receiver/:receiverId",
+  middlewareController.verifyToken,
+  conversationController.getConversationByReceiver
+);
+
 //GET AVAILABLE CONVERSATIONS BETWEEN USERS
 router.get(
   "/find/:first/:second",
