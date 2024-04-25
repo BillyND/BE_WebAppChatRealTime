@@ -5,15 +5,17 @@ const conversationController = {
   createConversation: async (req, res) => {
     const { senderId, receiverId } = req.body || {};
 
+    // Create a new conversation with the given senderId and receiverId
     const newConversation = new Conversation({
       members: [senderId, receiverId],
     });
 
     try {
       const savedConversation = await newConversation.save();
+
       res.status(200).json(savedConversation);
-    } catch (err) {
-      res.status(500).json(err);
+    } catch (error) {
+      res.status(500).json(error);
     }
   },
 
@@ -22,38 +24,104 @@ const conversationController = {
       const { id: userId } = req.user || {};
       const receiverIds = [];
 
-      const conversations = await Conversation.find({
-        members: { $in: [userId] },
-      }).sort({ updatedAt: -1 });
+      // Find conversations where the user is a member
+      const conversations = await Conversation.aggregate([
+        {
+          $match: {
+            members: userId,
+          },
+        },
+        {
+          $sort: {
+            updatedAt: -1,
+          },
+        },
+        {
+          $addFields: {
+            receiverId: {
+              $arrayElemAt: [
+                {
+                  $filter: {
+                    input: "$members",
+                    cond: { $ne: ["$$this", userId] },
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+      ]);
 
-      conversations = conversations.map((conversation) => {
-        const { members } = conversation || {};
-        const receiverId = members.filter((member) => member !== userId)[0];
-        conversation.receiverId = receiverId;
+      // Extract receiverIds from conversations
+      conversations.forEach((conversation) => {
+        const { receiverId } = conversation;
         receiverIds.push(receiverId);
-
-        return conversation;
       });
 
+      // Find receivers based on receiverIds
       const receivers = await User.find({
         _id: {
           $in: receiverIds,
         },
-      }).select(["avaUrl", "username", "email"]);
+      }).select("avaUrl username email");
 
-      const finalConversations = conversations.map((conversation) => {
-        const { receiverId } = conversation || {};
+      // Aggregate lastMessage for each conversation
+      const messagePipeline = [
+        {
+          $match: {
+            conversationId: {
+              $in: conversations.map((c) => c._id?.toString()),
+            },
+          },
+        },
+        {
+          $sort: {
+            createdAt: -1,
+          },
+        },
+        {
+          $group: {
+            _id: "$conversationId",
+            lastMessage: {
+              $first: {
+                isSender: {
+                  $cond: {
+                    if: { $eq: ["$sender", userId] },
+                    then: true,
+                    else: false,
+                  },
+                },
+                text: "$text",
+                timeSendLast: "$createdAt",
+              },
+            },
+          },
+        },
+      ];
+
+      const lastMessages = await Message.aggregate(messagePipeline);
+
+      // Map lastMessage to conversations
+      conversations.forEach((conversation) => {
+        const { receiverId } = conversation;
 
         const receiverFounded = receivers.find(
-          (receiver) => receiver._id === receiverId
+          (receiver) => receiver._id.toString() === receiverId
+        );
+
+        const lastMessage = lastMessages.find(
+          (message) => message._id.toString() === conversation._id.toString()
         );
 
         conversation.receiver = receiverFounded;
-
-        return conversation;
+        conversation.lastMessage = lastMessage ? lastMessage.lastMessage : null;
+        delete conversation.receiverId;
+        delete conversation.members;
       });
 
-      res.status(200).json(finalConversations);
+      // Send the final conversations as a response
+      res.status(200).json(conversations);
     } catch (err) {
       res.status(500).json(err);
     }
@@ -64,25 +132,17 @@ const conversationController = {
       const { receiverId } = req.params || {};
       const { id: currentUserId } = req.user || {};
 
-      const receiver = await User.findById(receiverId).select([
-        "avaUrl",
-        "username",
-        "email",
+      const [receiver, conversation] = await Promise.all([
+        User.findById(receiverId).select("avaUrl username email"),
+        Conversation.findOne({
+          members: { $all: [currentUserId, receiverId] },
+        }).sort({ updatedAt: -1 }),
       ]);
 
-      const conversation = await Conversation.findOne({
-        $or: [
-          { members: [currentUserId, receiverId] },
-          { members: [receiverId, currentUserId] },
-        ],
-      }).sort({ updatedAt: -1 });
-
-      const { _id: conversationId } = conversation || {};
+      const conversationId = conversation?._id;
 
       const listMessages = conversationId
-        ? await Message.find({
-            conversationId: conversationId,
-          })
+        ? await Message.find({ conversationId }).select("-conversationId -__v")
         : [];
 
       res.status(200).json({ receiver, listMessages, conversationId });
