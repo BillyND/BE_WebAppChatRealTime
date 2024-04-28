@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const authController = require("./authController");
 const { cloudinary } = require("../utils/cloudinary");
 const { apiReportProblem } = require("../utils/constant");
+const { fetch } = require("../utils/utilities");
 
 let cachedDataReport = {};
 
@@ -254,14 +255,6 @@ const userController = {
       const user = await User.findById(id);
       const { email } = user || {};
 
-      // Delay 30 seconds
-      if (Date.now() - Number(cachedDataReport?.[id]) < 31000) {
-        return res.status(200).json({
-          success: 0,
-          message: "Please wait 30 seconds to report back!",
-        });
-      }
-
       if (!detailProblem?.trim()) {
         return res.status(200).json({
           success: 0,
@@ -284,6 +277,7 @@ const userController = {
         ...resReportProblem,
       });
     } catch (error) {
+      console.log("===>erroe", error);
       res.status(500).json({
         message: "Server error!",
         error,

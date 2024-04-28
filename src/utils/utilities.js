@@ -21,8 +21,6 @@ const processUpdateAllPost = async () => {
     (post) => !post.userEmail
   );
 
-  console.log("===>herere", allListPostDontHaveUserEmail);
-
   allListPostDontHaveUserEmail.forEach(async (post) => {
     const { userId } = post || {};
     const infoUser = await User.findById(userId);
@@ -38,4 +36,8 @@ const processUpdateAllPost = async () => {
   });
 };
 
-module.exports = { formattedGmt7Date, processUpdateAllPost };
+// Import code-fetch
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+module.exports = { formattedGmt7Date, processUpdateAllPost, fetch };

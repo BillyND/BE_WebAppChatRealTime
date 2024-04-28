@@ -85,13 +85,7 @@ const conversationController = {
             _id: "$conversationId",
             lastMessage: {
               $first: {
-                isSender: {
-                  $cond: {
-                    if: { $eq: ["$sender", userId] },
-                    then: true,
-                    else: false,
-                  },
-                },
+                sender: "$sender",
                 text: "$text",
                 timeSendLast: "$createdAt",
               },

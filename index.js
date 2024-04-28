@@ -18,10 +18,6 @@ const Post = require("./src/models/Post");
 let timerCronjobSocket;
 let cronjobData = {};
 
-// Import code-fetch
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
 // Initialize express app
 const app = express();
 
