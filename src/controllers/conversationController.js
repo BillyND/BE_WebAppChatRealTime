@@ -11,9 +11,12 @@ const conversationController = {
     });
 
     try {
-      const savedConversation = await newConversation.save();
+      const [savedConversation, receiver] = await Promise.all([
+        newConversation.save(),
+        User.findById(receiverId).select("username email avaUrl"),
+      ]);
 
-      res.status(200).json(savedConversation);
+      res.status(200).json({ ...savedConversation._doc, receiver });
     } catch (error) {
       res.status(500).json(error);
     }
