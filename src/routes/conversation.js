@@ -23,11 +23,11 @@ router.get(
   conversationController.getConversationByReceiver
 );
 
-//GET AVAILABLE CONVERSATIONS BETWEEN USERS
-router.get(
-  "/find/:first/:second",
+// Update users read conversation
+router.put(
+  "/users-read",
   middlewareController.verifyToken,
-  conversationController.getAvailableConversation
+  conversationController.updateUsersReadConversation
 );
 
 module.exports = router;

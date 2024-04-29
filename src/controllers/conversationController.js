@@ -5,6 +5,10 @@ const conversationController = {
   createConversation: async (req, res) => {
     const { senderId, receiverId } = req.body || {};
 
+    const existConversation = await Conversation.findOne({
+      members: [senderId, receiverId],
+    });
+
     // Create a new conversation with the given senderId and receiverId
     const newConversation = new Conversation({
       members: [senderId, receiverId],
@@ -12,7 +16,7 @@ const conversationController = {
 
     try {
       const [savedConversation, receiver] = await Promise.all([
-        newConversation.save(),
+        existConversation || newConversation.save(),
         User.findById(receiverId).select("username email avaUrl"),
       ]);
 
@@ -117,6 +121,12 @@ const conversationController = {
         delete conversation.members;
       });
 
+      conversations.sort((a, b) => {
+        const timeSendLastA = a.lastMessage ? a.lastMessage.timeSendLast : 0;
+        const timeSendLastB = b.lastMessage ? b.lastMessage.timeSendLast : 0;
+        return timeSendLastB - timeSendLastA;
+      });
+
       // Send the final conversations as a response
       res.status(200).json(conversations);
     } catch (err) {
@@ -149,11 +159,18 @@ const conversationController = {
   },
 
   // Get available conversation.
-  getAvailableConversation: async (req, res) => {
+  updateUsersReadConversation: async (req, res) => {
     try {
-      const conversation = await Conversation.findOne({
-        members: { $all: [req.params.first, req.params.second] },
-      });
+      const { conversationId } = req.body || {};
+      const { id } = req.user || {};
+
+      const conversation = await Conversation.updateOne(
+        { _id: conversationId },
+        {
+          $addToSet: { usersRead: id },
+        }
+      );
+
       res.status(200).json(conversation);
     } catch (err) {
       res.status(500).json(err);
