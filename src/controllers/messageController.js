@@ -15,7 +15,7 @@ const messageController = {
       // Update the message count in the conversation
       await Conversation.updateOne(
         { _id: req.body.conversationId },
-        { $inc: { messageCount: 1 } }
+        { $inc: { messageCount: 1 }, usersRead: [sender] }
       );
 
       res.status(200).json(savedMessage);
@@ -32,7 +32,7 @@ const messageController = {
       // Find messages by conversationId
       const messages = await Message.find({
         conversationId,
-      });
+      }).lean();
 
       res.status(200).json(messages);
     } catch (error) {

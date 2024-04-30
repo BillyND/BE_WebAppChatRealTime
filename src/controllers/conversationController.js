@@ -171,7 +171,9 @@ const conversationController = {
         }
       );
 
-      res.status(200).json(conversation);
+      const updatedConversation = await Conversation.findById(conversationId);
+
+      res.status(200).json(updatedConversation);
     } catch (err) {
       res.status(500).json(err);
     }
