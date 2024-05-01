@@ -147,12 +147,15 @@ const conversationController = {
       ]);
 
       const conversationId = conversation?._id;
+      const conversationColor = conversation?.color;
 
       const listMessages = conversationId
         ? await Message.find({ conversationId }).select("-conversationId -__v")
         : [];
 
-      res.status(200).json({ receiver, listMessages, conversationId });
+      res
+        .status(200)
+        .json({ receiver, listMessages, conversationId, conversationColor });
     } catch (err) {
       res.status(500).json(err);
     }

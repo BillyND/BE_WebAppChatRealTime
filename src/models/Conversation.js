@@ -13,6 +13,10 @@ const ConversationSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    color: {
+      type: String,
+      default: "#3797f0",
+    },
   },
   { timestamps: true }
 );
