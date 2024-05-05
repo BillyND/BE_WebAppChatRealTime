@@ -148,6 +148,7 @@ const conversationController = {
 
       if (receiverId === currentUserId) {
         return res.status(500).json({
+          success: 0,
           message: "Do not retrieve data from the current user",
         });
       }
