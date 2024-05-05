@@ -104,7 +104,7 @@ const middlewareController = {
           .skip(startIndex)
           .limit(limit);
 
-        const resultsPaginated = { results };
+        const resultsPaginated = { results, next: null };
 
         resultsPaginated.currentUser = currentUser;
 

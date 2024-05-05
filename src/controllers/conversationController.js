@@ -58,6 +58,11 @@ const conversationController = {
             },
           },
         },
+        {
+          $match: {
+            receiverId: { $exists: true },
+          },
+        },
       ]);
 
       // Extract receiverIds from conversations
@@ -136,8 +141,16 @@ const conversationController = {
 
   getConversationByReceiver: async (req, res) => {
     try {
+      const page = parseInt(req.query?.page);
+      const limit = parseInt(req.query?.limit);
       const { receiverId } = req.params || {};
       const { id: currentUserId } = req.user || {};
+
+      if (receiverId === currentUserId) {
+        return res.status(500).json({
+          message: "Do not retrieve data from the current user",
+        });
+      }
 
       const [receiver, conversation] = await Promise.all([
         User.findById(receiverId).select("avaUrl username email"),
@@ -149,13 +162,34 @@ const conversationController = {
       const conversationId = conversation?._id;
       const conversationColor = conversation?.color;
 
+      const totalMessage = await Message.countDocuments({ conversationId });
+      const startIndex = (page - 1) * limit;
+      const endIndex = page * limit;
+
       const listMessages = conversationId
-        ? await Message.find({ conversationId }).select("-conversationId -__v")
+        ? await Message.find({ conversationId })
+            .select("-conversationId -__v -createdAt")
+            .sort({ updatedAt: -1 })
+            .skip(startIndex)
+            .limit(limit)
         : [];
 
-      res
-        .status(200)
-        .json({ receiver, listMessages, conversationId, conversationColor });
+      const resultsPaginated = {};
+
+      resultsPaginated.next =
+        endIndex < totalMessage ? { page: page + 1, limit } : null;
+
+      if (startIndex > 0) {
+        resultsPaginated.previous = { page: page - 1, limit };
+      }
+
+      res.status(200).json({
+        receiver,
+        listMessages,
+        conversationId,
+        conversationColor,
+        ...resultsPaginated,
+      });
     } catch (err) {
       res.status(500).json(err);
     }
@@ -167,7 +201,7 @@ const conversationController = {
       const { conversationId } = req.body || {};
       const { id } = req.user || {};
 
-      const conversation = await Conversation.updateOne(
+      await Conversation.updateOne(
         { _id: conversationId },
         {
           $addToSet: { usersRead: id },
