@@ -64,16 +64,17 @@ const postController = {
       // If the current image URL is different from the new one, update the image
       if (currentImageUrl?.trim() !== newImageUrl?.trim()) {
         // Delete the previous image from cloudinary
-        post?.cloudinaryId && cloudinary.uploader.destroy(post.cloudinaryId);
+        cloudinary.uploader.destroy(post.cloudinaryId).catch(() => {});
 
         // Upload the new image to cloudinary
-        const result =
-          (await cloudinary.uploader.upload(newImageUrl).catch(() => {})) ?? {};
+        const result = await cloudinary.uploader
+          .upload(newImageUrl)
+          .catch(() => {});
 
         // Prepare data for the new image
         newResultImage = {
-          imageUrl: result.secure_url,
-          cloudinaryId: result.public_id,
+          imageUrl: result?.secure_url,
+          cloudinaryId: result?.public_id,
         };
       }
 
@@ -86,11 +87,11 @@ const postController = {
       // Check if the user is the owner of the post
       if (post.userId === req.params.userId) {
         // Update the post and return success message
-        const resUpdate = await post.updateOne({ $set: dataUpdated });
+        post.updateOne({ $set: dataUpdated });
+
         res.status(200).json({
           EC: 0,
           message: "Post has been updated",
-          resUpdate,
         });
       } else {
         res.status(403).json("You can only update your post");

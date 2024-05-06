@@ -191,53 +191,64 @@ const userController = {
         return res.status(404).json({ message: "User not found." });
       }
 
-      // Prepare updated data for user
-      let dataUpdated = {
+      const dataUpdated = {
         username: username.trim(),
         about: about ? about.trim() : user.about,
         avaUrl: avaUrl ? avaUrl.trim() : user.avaUrl,
       };
 
       // If there's a new avatar URL and it's different from the current one
-      if (avaUrl && avaUrl.trim() !== user.avaUrl?.trim()) {
-        // Upload the new avatar to cloudinary
-        const result = await cloudinary.uploader.upload(avaUrl);
-
-        // Update data with new avatar URL and cloudinary ID
-        dataUpdated.avaUrl = result.secure_url;
-        dataUpdated.cloudinaryId = result.public_id;
-
+      if (!avaUrl.includes("res.cloudinary")) {
         // Delete the previous avatar from cloudinary
-        await cloudinary.uploader
-          .destroy(user.cloudinaryId)
-          .catch((error) =>
-            console.log("===>Error destroy cloudinary:", error)
-          );
+        cloudinary.uploader.destroy(user.cloudinaryId).catch(() => {});
+
+        // Upload the new avatar to cloudinary
+        cloudinary.uploader
+          .upload(avaUrl)
+          .then((data) => {
+            dataUpdated.avaUrl = data.secure_url;
+            dataUpdated.cloudinaryId = data.public_id;
+
+            // Create an array of promises to be performed
+            Promise.all([
+              // Update the avatar URL and username in posts
+              Post.updateMany(
+                { userId },
+                { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+              ),
+
+              // Update the avatar URL and username in comments
+              Comment.updateMany(
+                { ownerId: userId },
+                { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+              ),
+
+              // Update user information
+              user.updateOne({ $set: dataUpdated }),
+            ]);
+          })
+          .catch((err) => console.log("===>Error saveProfileUser:", err));
+      } else {
+        Promise.all([
+          // Update the avatar URL and username in posts
+          Post.updateMany(
+            { userId },
+            { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+          ),
+
+          // Update the avatar URL and username in comments
+          Comment.updateMany(
+            { ownerId: userId },
+            { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+          ),
+
+          // Update user information
+          user.updateOne({ $set: dataUpdated }),
+        ]);
       }
 
-      // Create an array of promises to be performed
-      const promises = [
-        // Promise to update the avatar URL and username in posts
-        Post.updateMany(
-          { userId },
-          { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
-        ),
-        // Promise to update the avatar URL and username in comments
-        Comment.updateMany(
-          { ownerId: userId },
-          { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
-        ),
-        // Update user information
-        user.updateOne({ $set: dataUpdated }),
-      ];
-
-      // Use Promise.all() to wait for all promises to complete
-      await Promise.all(promises);
-
-      // Retrieve updated user information
-      const updatedUser = await User.findById(userId);
       // Send updated user information as response
-      res.status(200).json(updatedUser);
+      res.status(200).json({ ...user?._doc, ...req.body });
     } catch (err) {
       // If an error occurs, log the error and send an internal server error response
       console.error(err);
