@@ -205,12 +205,12 @@ const userController = {
         // Upload the new avatar to cloudinary
         cloudinary.uploader
           .upload(avaUrl)
-          .then((data) => {
+          .then(async (data) => {
             dataUpdated.avaUrl = data.secure_url;
             dataUpdated.cloudinaryId = data.public_id;
 
             // Create an array of promises to be performed
-            Promise.all([
+            await Promise.all([
               // Update the avatar URL and username in posts
               Post.updateMany(
                 { userId },

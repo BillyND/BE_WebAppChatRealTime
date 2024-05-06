@@ -1,47 +1,46 @@
-const { object } = require("joi");
 const Post = require("../models/Post");
 const User = require("../models/User");
 const { cloudinary } = require("../utils/cloudinary");
 
 const postController = {
-  //CREATE A POST
+  // Create Post
   createPost: async (req, res) => {
     try {
       const users = await User.findById(req.body.userId);
+      const { description, imageUrl, userId } = req.body || {};
 
-      if (req.body.imageUrl) {
-        const result = await cloudinary.uploader.upload(req.body.imageUrl);
+      const makePost = {
+        description,
+        imageUrl,
+        userId,
+        username: users.username,
+        avaUrl: users.avaUrl,
+        userEmail: users.email,
+      };
 
-        const makePost = {
-          ...req.body,
-          imageUrl: result.secure_url,
-          cloudinaryId: result.public_id,
-          username: users.username,
-          avaUrl: users.avaUrl,
-          userEmail: users.email,
-        };
-        const newPost = new Post(makePost);
-        const savedPost = await newPost.save();
-        return res.status(200).json({
-          EC: 0,
-          message: "Create post success!",
-          data: savedPost,
-        });
-      } else {
-        const makePost = {
-          ...req.body,
-          username: users.username,
-          avaUrl: users.avaUrl,
-          userEmail: users.email,
-        };
-        const newPost = new Post(makePost);
-        const savedPost = await newPost.save();
-        return res.status(200).json({
-          EC: 0,
-          message: "Create post success!",
-          data: savedPost,
-        });
+      const newPost = new Post(makePost);
+      const savedPost = await newPost.save();
+
+      if (imageUrl) {
+        cloudinary.uploader
+          .upload(imageUrl)
+          .then(async (data) => {
+            await savedPost.updateOne({
+              $set: {
+                ...makePost,
+                imageUrl: data.secure_url,
+                cloudinaryId: data.public_id,
+              },
+            });
+          })
+          .catch(() => {});
       }
+
+      res.status(200).json({
+        EC: 0,
+        message: "Create post success!",
+        data: savedPost,
+      });
     } catch (err) {
       res.status(500).json({
         EC: 1,
@@ -51,44 +50,50 @@ const postController = {
     }
   },
 
-  //UPDATE A POST
+  // Update post
   updatePost: async (req, res) => {
     try {
       // Find the post by its ID
       const post = await Post.findById(req.params.postId.trim());
       const { imageUrl: newImageUrl } = req.body || {};
-      const { imageUrl: currentImageUrl } = post || {};
-
-      let newResultImage = {};
 
       // If the current image URL is different from the new one, update the image
-      if (currentImageUrl?.trim() !== newImageUrl?.trim()) {
+      if (
+        !newImageUrl.includes("res.cloudinary") &&
+        post.userId === req.params.userId
+      ) {
         // Delete the previous image from cloudinary
         cloudinary.uploader.destroy(post.cloudinaryId).catch(() => {});
 
         // Upload the new image to cloudinary
-        const result = await cloudinary.uploader
+        cloudinary.uploader
           .upload(newImageUrl)
-          .catch(() => {});
+          .then(async (data) => {
+            const newResultImage = {};
 
-        // Prepare data for the new image
-        newResultImage = {
-          imageUrl: result?.secure_url,
-          cloudinaryId: result?.public_id,
-        };
+            // Prepare data for the new image
+            newResultImage.imageUrl = data?.secure_url;
+            newResultImage.cloudinaryId = data?.public_id;
+
+            // Update the post and return success message
+            await post.updateOne({
+              $set: {
+                ...req.body,
+                ...newResultImage,
+              },
+            });
+          })
+          .catch((err) => console.log("===>Error updatePost:", err));
+      } else if (post.userId === req.params.userId) {
+        await post.updateOne({
+          $set: {
+            ...req.body,
+          },
+        });
       }
-
-      // Combine existing post data with new image data
-      const dataUpdated = {
-        ...req.body,
-        ...newResultImage,
-      };
 
       // Check if the user is the owner of the post
       if (post.userId === req.params.userId) {
-        // Update the post and return success message
-        post.updateOne({ $set: dataUpdated });
-
         res.status(200).json({
           EC: 0,
           message: "Post has been updated",
@@ -101,7 +106,7 @@ const postController = {
     }
   },
 
-  //DELETE A POST
+  // Delete post
   deletePost: async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
@@ -116,7 +121,7 @@ const postController = {
     }
   },
 
-  //GET ALL POST FROM A USER
+  // Get all posts from user id
   getPostsFromOne: async (req, res) => {
     try {
       const post = await Post.find({ userId: req.params.id });
@@ -126,7 +131,7 @@ const postController = {
     }
   },
 
-  //GET ALL POST FROM USER FOLLOWINGS
+  // Get all posts from user followings
   getFriendsPost: async (req, res) => {
     try {
       const currentUser = await User.findById(req.body.userId);
@@ -142,7 +147,7 @@ const postController = {
     }
   },
 
-  //GET ALL POSTS
+  // Get all posts
   getAllPosts: async (req, res) => {
     try {
       res.status(200).json(res.paginatedResults);
@@ -151,7 +156,7 @@ const postController = {
     }
   },
 
-  //GET A POST
+  // Get one post
   getAPost: async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
@@ -161,32 +166,7 @@ const postController = {
     }
   },
 
-  //UPVOTE A POST
-  upvotePost: async (req, res) => {
-    try {
-      const post = await Post.findById(req.params.id.trim());
-      if (
-        !post.upvotes.includes(req.body.userId) &&
-        post.downvotes.includes(req.body.userId)
-      ) {
-        await post.updateOne({ $push: { upvotes: req.body.userId } });
-        await post.updateOne({ $pull: { downvotes: req.body.userId } });
-        return res.status(200).json("Post is upvoted!");
-      } else if (
-        !post.upvotes.includes(req.body.userId) &&
-        !post.downvotes.includes(req.body.userId)
-      ) {
-        await post.updateOne({ $push: { upvotes: req.body.userId } });
-        return res.status(200).json("Post is upvoted!");
-      } else if (post.upvotes.includes(req.body.userId)) {
-        await post.updateOne({ $pull: { upvotes: req.body.userId } });
-        return res.status(200).json("Post is no longer upvoted!");
-      }
-    } catch (err) {
-      return res.status(500).json(err);
-    }
-  },
-
+  // Like post
   likesPost: async (req, res) => {
     try {
       const postId = req.params.id.trim();
@@ -212,34 +192,7 @@ const postController = {
     }
   },
 
-  //DOWNVOTE POST
-  downvotePost: async (req, res) => {
-    try {
-      const post = await Post.findById(req.params.id.trim());
-      if (
-        !post.downvotes.includes(req.body.userId) &&
-        post.upvotes.includes(req.body.userId)
-      ) {
-        await post.updateOne({ $push: { downvotes: req.body.userId } });
-        await post.updateOne({ $pull: { upvotes: req.body.userId } });
-        return res.status(200).json("Post is downvoted!");
-      } else if (
-        !post.downvotes.includes(req.body.userId) &&
-        !post.upvotes.includes(req.body.userId)
-      ) {
-        await post.updateOne({ $push: { downvotes: req.body.userId } });
-
-        return res.status(200).json("Post is downvoted!");
-      } else if (post.downvotes.includes(req.body.userId)) {
-        await post.updateOne({ $pull: { downvotes: req.body.userId } });
-        return res.status(200).json("Post is no longer downvoted!");
-      }
-    } catch (err) {
-      return res.status(500).json(err);
-    }
-  },
-
-  //ADD POST TO FAVORITE
+  // Add post to favorite
   addFavoritePost: async (req, res) => {
     try {
       const user = await User.findById(req.body.userId);
@@ -267,7 +220,7 @@ const postController = {
     }
   },
 
-  //GET FAVORITE POST
+  // Get favorite post
   getFavoritePosts: async (req, res) => {
     try {
       const currentUser = await User.findById(req.body.userId);
@@ -282,4 +235,5 @@ const postController = {
     }
   },
 };
+
 module.exports = postController;
