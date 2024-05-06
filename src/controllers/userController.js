@@ -98,7 +98,7 @@ const userController = {
     }
   },
 
-  // FOLLOW/UNFOLLOW A USER
+  // Follow/Un-follow a user
   followUser: async (req, res) => {
     const { userId } = req.body;
     const { id } = req.params;
@@ -178,73 +178,70 @@ const userController = {
       const { username, about, avaUrl } = req.body || {};
       const { id: userId } = req.user || {};
 
-      // If username is empty, return null response with a message
-      if (!username.trim()) {
-        return res.status(200).json({ message: "Username cannot be empty." });
+      // Check if username exists and is not empty
+      if (!username || !username.trim()) {
+        return res.status(400).json({ message: "Username is required." });
       }
 
       // Find the user by their ID
-      const user = await User.findById(userId);
+      let user = await User.findById(userId);
+
+      // If user not found, return error
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
 
       // Prepare updated data for user
       let dataUpdated = {
-        avaUrl: user.avaUrl,
-        username: username?.trim(),
-        about: about?.trim(),
+        username: username.trim(),
+        about: about ? about.trim() : user.about,
+        avaUrl: avaUrl ? avaUrl.trim() : user.avaUrl,
       };
 
       // If there's a new avatar URL and it's different from the current one
-      if (avaUrl && avaUrl.trim() !== user.avaUrl.trim()) {
-        // Delete the previous avatar from cloudinary
-        cloudinary.uploader.destroy(user.cloudinaryId);
-
+      if (avaUrl && avaUrl.trim() !== user.avaUrl?.trim()) {
         // Upload the new avatar to cloudinary
         const result = await cloudinary.uploader.upload(avaUrl);
 
         // Update data with new avatar URL and cloudinary ID
-        dataUpdated = {
-          ...dataUpdated,
-          avaUrl: result.secure_url,
-          cloudinaryId: result.public_id,
-        };
+        dataUpdated.avaUrl = result.secure_url;
+        dataUpdated.cloudinaryId = result.public_id;
+
+        // Delete the previous avatar from cloudinary
+        await cloudinary.uploader
+          .destroy(user.cloudinaryId)
+          .catch((error) =>
+            console.log("===>Error destroy cloudinary:", error)
+          );
       }
 
       // Create an array of promises to be performed
-      const promises = [];
-
-      // Promise to update the avatar URL and username in posts
-      promises.push(
+      const promises = [
+        // Promise to update the avatar URL and username in posts
         Post.updateMany(
-          { userId: userId },
-          {
-            avaUrl: dataUpdated.avaUrl,
-            username: username,
-          }
-        )
-      );
-
-      // Promise to update the avatar URL and username in comments
-      promises.push(
+          { userId },
+          { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+        ),
+        // Promise to update the avatar URL and username in comments
         Comment.updateMany(
           { ownerId: userId },
-          {
-            avaUrl: dataUpdated.avaUrl,
-            username: username,
-          }
-        )
-      );
-
-      // Update user information
-      promises.push(user.updateOne({ $set: dataUpdated }));
+          { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+        ),
+        // Update user information
+        user.updateOne({ $set: dataUpdated }),
+      ];
 
       // Use Promise.all() to wait for all promises to complete
       await Promise.all(promises);
 
+      // Retrieve updated user information
       const updatedUser = await User.findById(userId);
-
+      // Send updated user information as response
       res.status(200).json(updatedUser);
     } catch (err) {
-      res.status(500).json(err);
+      // If an error occurs, log the error and send an internal server error response
+      console.error(err);
+      res.status(500).json({ message: "Internal server error." });
     }
   },
 
