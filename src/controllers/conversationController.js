@@ -199,19 +199,22 @@ const conversationController = {
   // Get available conversation.
   updateUsersReadConversation: async (req, res) => {
     try {
-      const { conversationId } = req.body || {};
+      const { conversationId, messageId } = req.body || {};
       const { id } = req.user || {};
 
-      await Conversation.updateOne(
+      const updatedConversation = await Conversation.findOneAndUpdate(
         { _id: conversationId },
         {
           $addToSet: { usersRead: id },
-        }
-      );
+          $set: { [`messageRead.${id}`]: messageId },
+        },
+        { new: true }
+      ).lean();
 
-      const updatedConversation = await Conversation.findById(conversationId);
-
-      res.status(200).json(updatedConversation);
+      res.status(200).json({
+        ...updatedConversation,
+        usersRead: [...updatedConversation.usersRead, id],
+      });
     } catch (err) {
       res.status(500).json(err);
     }

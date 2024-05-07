@@ -17,6 +17,9 @@ const ConversationSchema = new mongoose.Schema(
       type: String,
       default: "#3797f0",
     },
+    messageRead: {
+      type: Object,
+    },
   },
   { timestamps: true }
 );
