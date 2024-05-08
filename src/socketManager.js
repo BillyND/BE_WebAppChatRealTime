@@ -2,7 +2,7 @@ const http = require("http");
 const socketio = require("socket.io");
 
 // Object to store user information and their socketIds
-const onlineUser = {};
+const infoUserOnline = {};
 const connectedUsers = {};
 const userSockets = {};
 
@@ -33,7 +33,9 @@ const emitCommentUpdate = (io, comment, targetSocketId) => {
   io.emit("getComment", { ...comment, targetSocketId });
 };
 
-const connectUser = (io, userId, socketId) => {
+const connectUser = (io, data, socketId) => {
+  const { userId, email } = data || {};
+
   if (connectedUsers[userId]) {
     connectedUsers[userId].push(socketId);
   } else {
@@ -42,9 +44,13 @@ const connectUser = (io, userId, socketId) => {
 
   userSockets[socketId] = userId;
 
+  if (email) {
+    infoUserOnline[email] = data;
+  }
+
   const usersOnline = getUsersOnline();
 
-  io.emit("usersOnline", usersOnline);
+  io.emit("usersOnline", { usersOnline, infoUserOnline });
 };
 
 const disconnectUser = (io, socketId) => {
@@ -61,10 +67,9 @@ const disconnectUser = (io, socketId) => {
   }
 
   delete userSockets[socketId];
-
   const usersOnline = getUsersOnline();
 
-  io.emit("usersOnline", usersOnline);
+  io.emit("usersOnline", { usersOnline, infoUserOnline });
 };
 
 const checkConnect = (io, userId) => {
@@ -75,10 +80,6 @@ const checkConnect = (io, userId) => {
       });
     }
   });
-
-  const usersOnline = getUsersOnline();
-
-  io.emit("usersOnline", usersOnline);
 };
 
 const emitSendMessage = (io, data, targetSocketId) => {
@@ -138,7 +139,7 @@ const setupSocketIO = (app) => {
       emitCommentUpdate(io, comment, socket.id)
     );
 
-    socket.on("connectUser", (userId) => connectUser(io, userId, socket.id));
+    socket.on("connectUser", (data) => connectUser(io, data, socket.id));
     socket.on("checkConnect", (userId) => checkConnect(io, userId, socket.id));
     socket.on("disconnect", () => disconnectUser(io, socket.id));
 
