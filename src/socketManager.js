@@ -2,6 +2,7 @@ const http = require("http");
 const socketio = require("socket.io");
 
 // Object to store user information and their socketIds
+const onlineUser = {};
 const connectedUsers = {};
 const userSockets = {};
 
@@ -9,6 +10,16 @@ const getOtherSocketIds = (currentSocketId) =>
   Object.values(connectedUsers).filter(
     (socketIds) => !socketIds.includes(currentSocketId)
   );
+
+const getUsersOnline = () => {
+  const usersOnline = {};
+
+  for (const userId in connectedUsers) {
+    usersOnline[userId] = true;
+  }
+
+  return usersOnline;
+};
 
 // Socket.io functions
 const emitPostUpdate = (io, post, targetSocketId) => {
@@ -31,7 +42,9 @@ const connectUser = (io, userId, socketId) => {
 
   userSockets[socketId] = userId;
 
-  console.log("===>connectUser:", connectedUsers);
+  const usersOnline = getUsersOnline();
+
+  io.emit("usersOnline", usersOnline);
 };
 
 const disconnectUser = (io, socketId) => {
@@ -49,7 +62,9 @@ const disconnectUser = (io, socketId) => {
 
   delete userSockets[socketId];
 
-  console.log("===>disconnectUser:", connectedUsers);
+  const usersOnline = getUsersOnline();
+
+  io.emit("usersOnline", usersOnline);
 };
 
 const checkConnect = (io, userId) => {
@@ -60,6 +75,10 @@ const checkConnect = (io, userId) => {
       });
     }
   });
+
+  const usersOnline = getUsersOnline();
+
+  io.emit("usersOnline", usersOnline);
 };
 
 const emitSendMessage = (io, data, targetSocketId) => {
