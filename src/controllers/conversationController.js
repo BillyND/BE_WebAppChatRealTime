@@ -63,6 +63,9 @@ const conversationController = {
             receiverId: { $exists: true },
           },
         },
+        {
+          $unset: "updatedAt",
+        },
       ]);
 
       // Extract receiverIds from conversations
