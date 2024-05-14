@@ -1,22 +1,37 @@
 const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
+const { cloudinary } = require("../utils/cloudinary");
 
 const messageController = {
   // Handle create message.
   createMessage: async (req, res) => {
     try {
       const { id: sender } = req.user || {};
-      const dataNewMessage = { ...(req.body || {}), sender };
+      const { img, text, conversationId } = req.body || {};
 
       // Create a new message
-      const newMessage = new Message(dataNewMessage);
+      const newMessage = new Message({ img, text, conversationId, sender });
       const savedMessage = await newMessage.save();
 
       // Update the message count in the conversation
-      await Conversation.updateOne(
+      Conversation.updateOne(
         { _id: req.body.conversationId },
         { $inc: { messageCount: 1 }, usersRead: [sender] }
       );
+
+      // if (img) {
+      //   cloudinary.uploader
+      //     .upload(img)
+      //     .then(async (data) => {
+      //       await savedMessage.updateOne({
+      //         $set: {
+      //           img: data.secure_url,
+      //           cloudinaryId: data.public_id,
+      //         },
+      //       });
+      //     })
+      //     .catch(() => {});
+      // }
 
       res.status(200).json(savedMessage);
     } catch (error) {

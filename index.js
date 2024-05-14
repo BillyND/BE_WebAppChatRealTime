@@ -51,6 +51,19 @@ app.get("/", async (req, res) => {
   });
 });
 
+app.post("/", async (req, res) => {
+  const numberPosts = await Post.countDocuments({});
+
+  console.log("===>?here");
+
+  res.send({
+    EC: 0,
+    message: `<=== Web chat API is running on port ${port} ===>`,
+    numberPosts,
+    cronjobData,
+  });
+});
+
 // Trigger API route
 app.get("/v1/api/trigger", (req, res) => {
   res.send({
