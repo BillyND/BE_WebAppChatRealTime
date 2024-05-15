@@ -102,6 +102,7 @@ const conversationController = {
               $first: {
                 sender: "$sender",
                 text: "$text",
+                img: "$img",
                 timeSendLast: "$createdAt",
               },
             },
