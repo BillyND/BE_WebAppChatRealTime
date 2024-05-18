@@ -21,6 +21,9 @@ const postSchema = new mongoose.Schema(
     cloudinaryId: {
       type: String,
     },
+    aspectRatio: {
+      type: Number,
+    },
     description: {
       type: String,
     },

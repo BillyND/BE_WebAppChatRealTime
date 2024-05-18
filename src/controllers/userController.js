@@ -7,8 +7,6 @@ const { cloudinary } = require("../utils/cloudinary");
 const { apiReportProblem } = require("../utils/constant");
 const { fetch } = require("../utils/utilities");
 
-let cachedDataReport = {};
-
 const userController = {
   //GET A USER
   getUser: async (req, res) => {
@@ -197,6 +195,23 @@ const userController = {
         avaUrl: avaUrl ? avaUrl.trim() : user.avaUrl,
       };
 
+      await Promise.all([
+        // Update the avatar URL and username in posts
+        Post.updateMany(
+          { userId },
+          { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+        ),
+
+        // Update the avatar URL and username in comments
+        Comment.updateMany(
+          { ownerId: userId },
+          { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
+        ),
+
+        // Update user information
+        user.updateOne({ $set: dataUpdated }),
+      ]);
+
       // If there's a new avatar URL and it's different from the current one
       if (!avaUrl.includes("res.cloudinary")) {
         // Delete the previous avatar from cloudinary
@@ -228,23 +243,6 @@ const userController = {
             ]);
           })
           .catch((err) => console.log("===>Error saveProfileUser:", err));
-      } else {
-        Promise.all([
-          // Update the avatar URL and username in posts
-          Post.updateMany(
-            { userId },
-            { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
-          ),
-
-          // Update the avatar URL and username in comments
-          Comment.updateMany(
-            { ownerId: userId },
-            { avaUrl: dataUpdated.avaUrl, username: dataUpdated.username }
-          ),
-
-          // Update user information
-          user.updateOne({ $set: dataUpdated }),
-        ]);
       }
 
       // Send updated user information as response
@@ -259,7 +257,7 @@ const userController = {
   reportProblem: async (req, res) => {
     try {
       const { id } = req.user || {};
-      const { detailProblem, timeReport } = req.body || {};
+      const { detailProblem } = req.body || {};
       const user = await User.findById(id);
       const { email } = user || {};
 
@@ -277,8 +275,6 @@ const userController = {
           userEmail: email,
         }),
       }).then((res) => res.json());
-
-      cachedDataReport[id] = timeReport;
 
       res.status(200).json({
         success: 1,

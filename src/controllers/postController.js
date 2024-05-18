@@ -25,15 +25,20 @@ const postController = {
         cloudinary.uploader
           .upload(imageUrl)
           .then(async (data) => {
+            const { width, height } = data || {};
+
             await savedPost.updateOne({
               $set: {
                 ...makePost,
                 imageUrl: data.secure_url,
                 cloudinaryId: data.public_id,
+                aspectRatio: Number(width) / Number(height),
               },
             });
           })
-          .catch(() => {});
+          .catch((error) => {
+            console.error("===>Error upload image post", error);
+          });
       }
 
       res.status(200).json({
@@ -55,11 +60,18 @@ const postController = {
     try {
       // Find the post by its ID
       const post = await Post.findById(req.params.postId.trim());
-      const { imageUrl: newImageUrl } = req.body || {};
+      const { imageUrl: newImageUrl = "" } = req.body || {};
+
+      await post.updateOne({
+        $set: {
+          ...req.body,
+          imageUrl: newImageUrl,
+        },
+      });
 
       // If the current image URL is different from the new one, update the image
       if (
-        !newImageUrl.includes("res.cloudinary") &&
+        !newImageUrl?.includes("res.cloudinary") &&
         post.userId === req.params.userId
       ) {
         // Delete the previous image from cloudinary
@@ -69,11 +81,13 @@ const postController = {
         cloudinary.uploader
           .upload(newImageUrl)
           .then(async (data) => {
+            const { width, height } = data || {};
             const newResultImage = {};
 
             // Prepare data for the new image
             newResultImage.imageUrl = data?.secure_url;
             newResultImage.cloudinaryId = data?.public_id;
+            newResultImage.aspectRatio = Number(width) / Number(height);
 
             // Update the post and return success message
             await post.updateOne({
@@ -84,12 +98,6 @@ const postController = {
             });
           })
           .catch((err) => console.log("===>Error updatePost:", err));
-      } else if (post.userId === req.params.userId) {
-        await post.updateOne({
-          $set: {
-            ...req.body,
-          },
-        });
       }
 
       // Check if the user is the owner of the post
@@ -102,6 +110,7 @@ const postController = {
         res.status(403).json("You can only update your post");
       }
     } catch (err) {
+      console.error("===> Error updatePost:", err);
       res.status(500).json(err);
     }
   },
