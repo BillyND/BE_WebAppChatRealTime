@@ -11,13 +11,15 @@ const messageController = {
 
       // Create a new message
       const newMessage = new Message({ img, text, conversationId, sender });
-      const savedMessage = await newMessage.save();
+      const [savedMessage] = await Promise.all([
+        newMessage.save(),
 
-      // Update the message count in the conversation
-      await Conversation.updateOne(
-        { _id: req.body.conversationId },
-        { $inc: { messageCount: 1 }, usersRead: [sender] }
-      );
+        // Update the message count in the conversation
+        Conversation.updateOne(
+          { _id: conversationId },
+          { $inc: { messageCount: 1 }, usersRead: [sender] }
+        ),
+      ]);
 
       // if (img) {
       //   cloudinary.uploader
