@@ -14,7 +14,7 @@ const messageController = {
       const savedMessage = await newMessage.save();
 
       // Update the message count in the conversation
-      Conversation.updateOne(
+      await Conversation.updateOne(
         { _id: req.body.conversationId },
         { $inc: { messageCount: 1 }, usersRead: [sender] }
       );
