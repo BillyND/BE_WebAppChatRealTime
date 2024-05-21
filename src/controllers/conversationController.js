@@ -242,13 +242,12 @@ const conversationController = {
       }
 
       // Update the color
-      const updatedConversation = await Conversation.findOneAndUpdate(
+      await Conversation.findOneAndUpdate(
         { _id: conversationId },
-        { color: style },
-        { new: true } // Return the updated document
-      ).lean();
+        { color: style }
+      );
 
-      res.status(200).json(updatedConversation);
+      res.status(200).json({ message: "Updated style for conversation!" });
     } catch (err) {
       console.error("Error updating conversation color:", err);
       res.status(500).json({
