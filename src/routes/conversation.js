@@ -30,4 +30,11 @@ router.put(
   conversationController.updateUsersReadConversation
 );
 
+// Update style conversation
+router.put(
+  "/style",
+  middlewareController.verifyToken,
+  conversationController.updateStyleConversation
+);
+
 module.exports = router;

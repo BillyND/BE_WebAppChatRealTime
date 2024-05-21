@@ -159,6 +159,7 @@ const conversationController = {
 
       const [receiver, conversation] = await Promise.all([
         User.findById(receiverId).select("avaUrl username email"),
+
         Conversation.findOne({
           members: { $all: [currentUserId, receiverId] },
         }).sort({ updatedAt: -1 }),
@@ -200,7 +201,7 @@ const conversationController = {
     }
   },
 
-  // Get available conversation.
+  // Update users read conversation.
   updateUsersReadConversation: async (req, res) => {
     try {
       const { conversationId, messageId } = req.body || {};
@@ -212,15 +213,48 @@ const conversationController = {
           $addToSet: { usersRead: id },
           $set: { [`messageRead.${id}`]: messageId },
         },
-        { new: true }
+        { new: true } // Return the updated document
       ).lean();
 
-      res.status(200).json({
-        ...updatedConversation,
-        usersRead: [...updatedConversation.usersRead, id],
-      });
+      res.status(200).json(updatedConversation);
     } catch (err) {
       res.status(500).json(err);
+    }
+  },
+
+  // Update style conversation.
+  updateStyleConversation: async (req, res) => {
+    try {
+      const { conversationId, style } = req.body;
+      const { id: userId } = req.user;
+
+      // Find the conversation by ID and check if the user is a member
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        members: userId,
+      }).lean();
+
+      if (!conversation) {
+        return res.status(403).json({
+          message:
+            "You are not a member of this conversation or the conversation does not exist",
+        });
+      }
+
+      // Update the color
+      const updatedConversation = await Conversation.findOneAndUpdate(
+        { _id: conversationId },
+        { color: style },
+        { new: true } // Return the updated document
+      ).lean();
+
+      res.status(200).json(updatedConversation);
+    } catch (err) {
+      console.error("Error updating conversation color:", err);
+      res.status(500).json({
+        message: "An error occurred while updating the conversation color",
+        error: err,
+      });
     }
   },
 };
